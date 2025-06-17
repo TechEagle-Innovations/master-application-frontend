@@ -13,9 +13,9 @@ const DroneCard: React.FC<DroneCardProps> = ({ id, location, lastUsed, status })
   const statusColorClass = status === 'Assigned' ? 'text-green-500' : 'text-orange-500';
 
   return (
-    <TouchableOpacity className="bg-white rounded-lg p-4 mb-3 shadow-md border border-gray-200">
+    <TouchableOpacity className="bg-white rounded-lg p-4 mb-3 shadow-md ">
       <View className="flex-row justify-between items-center mb-2">
-        <Text className="text-xl font-bold text-gray-800">{id}</Text>
+        <Text className="text-xl font-[500] text-gray-800">{id}</Text>
         <Text className={`font-semibold ${statusColorClass}`}>{status}</Text>
       </View>
       <View className="flex-row items-center mb-1">
