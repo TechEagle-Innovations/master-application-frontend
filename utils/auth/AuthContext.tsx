@@ -1,6 +1,5 @@
 import { AuthAction, AuthResponse, AuthState } from '@/utils/auth/types';
-import { useRouter, useSegments } from 'expo-router';
-import React, { createContext, useContext, useEffect, useReducer, useState } from 'react';
+import React, { createContext, useContext, useEffect, useReducer, useState, useCallback } from 'react';
 import { tokenService } from './tokenService';
 
 const initialState: AuthState = {
@@ -47,27 +46,9 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, initialState);
-  const segments = useSegments();
-  const router = useRouter();
   const [isInitialized, setIsInitialized] = useState(false);
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  useEffect(() => {
-    if (!isInitialized) return;
-
-    const inAuthGroup = segments[0] === '(auth)';
-    
-    if (state.isAuthenticated && inAuthGroup) {
-      router.replace('/(app)/dashboard');
-    } else if (!state.isAuthenticated && !inAuthGroup && !state.isLoading) {
-      router.replace('/(auth)/login');
-    }
-  }, [state.isAuthenticated, segments, isInitialized, state.isLoading]);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const { access_token, refresh_token } = await tokenService.getTokens();
       
@@ -97,22 +78,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsInitialized(true);
     }
-  };
+  }, []);
 
-  const login = async (response: AuthResponse) => {
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  const login = useCallback(async (response: AuthResponse) => {
     await tokenService.saveTokens({
       access_token: response.access_token,
       refresh_token: response.refresh_token,
     });
-    dispatch({ type: 'LOGIN_SUCCESS', payload: response });
-  };
+    dispatch({ 
+      type: 'LOGIN_SUCCESS', 
+      payload: response
+    });
+  }, []);
 
-  const logout = async () => {
-    await tokenService.clearTokens();
+  const logout = useCallback(async () => {
+    const success = await tokenService.logout();
+    if (!success) {
+      // Optionally show a toast or log
+      console.warn('Logout failed or partially failed. Tokens cleared.');
+    }
     dispatch({ type: 'LOGOUT' });
-  };
+  }, []);
 
-  const refreshAuth = async () => {
+  const refreshAuth = useCallback(async () => {
     try {
       const response = await tokenService.refreshTokens();
       dispatch({ type: 'REFRESH_TOKEN_SUCCESS', payload: response });
@@ -120,7 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Token refresh failed:', error);
       await logout();
     }
-  };
+  }, [logout]);
 
   if (!isInitialized) {
     return null;

@@ -7,13 +7,11 @@ import { ERROR_MESSAGES } from '@/utils/api/config';
 import { authService } from '@/utils/api/services/AuthService';
 import { useAuth } from '@/utils/auth/AuthContext';
 import authNavigation from '@/utils/auth/navigation';
-import axios, { AxiosError } from 'axios';
 import { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
-interface ApiErrorResponse {
+interface ApiError {
   message: string;
-  statusCode: number;
 }
 
 export default function Login() {
@@ -29,15 +27,15 @@ export default function Login() {
     try {
       setLoading(true);
       setError(null);
-      console.log('Attempting login with email:', email);
+      // console.log('Attempting login with email:', email);
       const response = await authService.login({ email, password });
-      // const response = await axios.post('http://192.168.1.5:6000/user/login', { email, password });
-      console.log('Login successful, response:', { ...response, access_token: '[REDACTED]', refresh_token: '[REDACTED]' });
+      // console.log('Login successful, response:', { ...response});
       await authLogin(response);
-      console.log('Auth context updated successfully');
+      // console.log('Auth context updated successfully');
     } catch (error) {
       console.error('Login failed:', error);
-      handleLoginError(error);
+      // handleLoginError(error);
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -65,25 +63,15 @@ export default function Login() {
     return true;
   };
 
-  const handleLoginError = (error: unknown) => {
-    // Handle Axios errors
-    if (error instanceof Error) {
-      const axiosError = error as AxiosError<ApiErrorResponse>;
-      if (axiosError.response?.data) {
-        // API error with response
-        setError(axiosError.response.data.message || ERROR_MESSAGES.GENERIC_ERROR);
-      } else if (axiosError.message.includes('Network Error')) {
-        // Network error
-        setError(ERROR_MESSAGES.NETWORK_ERROR);
-      } else {
-        // Other error with message
-        setError(error.message || ERROR_MESSAGES.GENERIC_ERROR);
-      }
-    } else {
-      // Unknown error
-      setError(ERROR_MESSAGES.GENERIC_ERROR);
-    }
-  };
+  // const handleLoginError = (error: unknown) => {
+  //   if (error instanceof Error) {
+  //     setError(error.message);
+  //   } else if (typeof error === 'object' && error !== null && 'message' in error) {
+  //     setError((error as ApiError).message);
+  //   } else {
+  //     setError(ERROR_MESSAGES.GENERIC_ERROR);
+  //   }
+  // };
 
   return (
     <View className="flex-1 bg-white p-7 justify-center pb-28">
@@ -92,11 +80,6 @@ export default function Login() {
       </View>
 
       <View className="space-y-4">
-        {error && (
-          <View className="mb-4">
-            <Error error={error} />
-          </View>
-        )}
         
         <EmailInput
           label="Email"
@@ -132,6 +115,11 @@ export default function Login() {
           <Text className="text-center text-base">
             Forgot Password?
           </Text>
+          {error && (
+          <View className="mb-4">
+            <Error error={error} />
+          </View>
+        )}
         </TouchableOpacity>
       </View>
     </View>

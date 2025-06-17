@@ -6,7 +6,7 @@ const ENV = process.env.NODE_ENV || 'development';
 // Handle localhost for different platforms
 const getLocalhost = () => {
   if (Platform.OS === 'android') {
-    return 'http://192.168.1.5:6000'; // Android emulator localhost
+    return 'http://192.168.1.6:6000'; // Android emulator localhost
   }
   if (Platform.OS === 'ios') {
     return 'http://localhost:6000'; // iOS simulator localhost
@@ -45,7 +45,7 @@ export const API_CONFIG = {
 
 export const ERROR_MESSAGES = {
   NETWORK_ERROR: 'Network error occurred. Please check your connection.',
-  UNAUTHORIZED: 'Session expired. Please login again.',
+  UNAUTHORIZED: 'Session expired. Please Login again.',
   SERVER_ERROR: 'Server error occurred. Please try again later.',
   INVALID_CREDENTIALS: 'Invalid email or password.',
   INVALID_OTP: 'Invalid OTP. Please try again.',

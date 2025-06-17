@@ -1,21 +1,34 @@
 import { AuthProvider } from '@/utils/auth/AuthContext';
 import { Stack, useRootNavigationState, useRouter, useSegments } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { View } from "react-native";
+import { useAuth } from '@/utils/auth/AuthContext';
 
 function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
   const navigationState = useRootNavigationState();
+  const { isAuthenticated, isLoading } = useAuth();
 
-  useEffect(() => {
-    if (!navigationState?.key) return;
+  const handleNavigation = useCallback(() => {
+    if (!navigationState?.key || isLoading) return;
 
     const inAuthGroup = segments[0] === '(auth)';
-    if (!inAuthGroup) {
+    
+    if (isAuthenticated && inAuthGroup) {
+      router.replace('/(app)/dashboard');
+    } else if (!isAuthenticated && !inAuthGroup) {
       router.replace('/(auth)/login');
     }
-  }, [segments, navigationState?.key]);
+  }, [segments, navigationState?.key, isAuthenticated, isLoading, router]);
+
+  useEffect(() => {
+    handleNavigation();
+  }, [handleNavigation]);
+
+  if (!navigationState?.key || isLoading) {
+    return <View style={{ flex: 1 }} />;
+  }
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

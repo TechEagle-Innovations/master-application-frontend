@@ -3,7 +3,7 @@ import Button from "@/components/auth/Button";
 import EmailInput from '@/components/auth/EmailInput';
 import { Error } from "@/components/Error";
 import authNavigation from '@/utils/auth/navigation';
-import axios from 'axios';
+import { authService } from '@/utils/api/services/AuthService';
 import { ChevronLeft } from 'lucide-react-native';
 import { useState } from 'react';
 import { Alert, Text, TouchableOpacity, View } from 'react-native';
@@ -20,20 +20,12 @@ export default function ForgotPassword() {
       setLoading(true);
       setError(null);
 
-      const response = await axios.post('http://localhost:6000/user/forgot-password', {
-        email,
-      });
+      await authService.forgotPassword(email);
 
-      if (response.data) {
-        authNavigation.goToVerifyOTP({ email });
-      }
+      authNavigation.goToVerifyOTP({ email });
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        setError(error.response?.data?.message || 'Failed to send OTP. Please try again.');
-      } else {
-        setError('An unexpected error occurred. Please try again.');
-      }
-      // Alert.alert('Error', error instanceof Error ? error.message : 'Failed to send OTP');
+      console.log('Error:', error);
+      setError(error.message || 'Failed to send OTP. Please try again.');
     } finally {
       setLoading(false);
     }

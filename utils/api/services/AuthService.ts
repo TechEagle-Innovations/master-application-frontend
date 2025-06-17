@@ -1,4 +1,4 @@
-import { AuthResponse, LoginFormData } from '@/utils/auth/types';
+import { AuthResponse, LoginFormData, LogoutFormData } from '@/utils/auth/types';
 import { ERROR_MESSAGES } from '../config';
 import { IAuthService } from '../interfaces/IAuthService';
 import { BaseService } from './BaseService';
@@ -54,13 +54,11 @@ class AuthService extends BaseService implements IAuthService {
 
   async resetPassword(
     email: string,
-    otp: string,
     newPassword: string
   ): Promise<{ message: string }> {
     try {
       return await this.post<{ message: string }>('reset-password', {
         email,
-        otp,
         newPassword,
       });
     } catch (error) {

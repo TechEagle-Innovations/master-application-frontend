@@ -1,42 +1,95 @@
-import React from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { ScrollView, Text, View, TouchableOpacity, TextInput, SafeAreaView } from 'react-native';
 import { useAuth } from '../../utils/auth/AuthContext';
+import { Bars3Icon, MagnifyingGlassIcon } from 'react-native-heroicons/outline';
+import { HomeIcon as HomeOutline, ClockIcon as ClockOutline } from 'react-native-heroicons/outline';
+import { HomeIcon as HomeSolid, ClockIcon as ClockSolid } from 'react-native-heroicons/solid';
+import HamburgerMenu from '../../components/HamburgerMenu';
+import DroneCard from '../../components/DroneCard';
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const [isMenuVisible, setMenuVisible] = useState(false);
+  const [activeTab, setActiveTab] = useState('available');
+  const [activeNav, setActiveNav] = useState('drones');
+
+  const drones = [
+    { id: 'DRN-2023-001', location: 'New York City, NY', lastUsed: 'Oct 15, 2023', status: 'Assigned' as 'Assigned' | 'Stand-By' },
+    { id: 'DRN-2023-002', location: 'Los Angeles, CA', lastUsed: 'Oct 16, 2023', status: 'Stand-By' as 'Assigned' | 'Stand-By' },
+    { id: 'DRN-2023-003', location: 'San Francisco, CA', lastUsed: 'Oct 15, 2023', status: 'Stand-By' as 'Assigned' | 'Stand-By' },
+    { id: 'DRN-2023-004', location: 'New York, NY', lastUsed: 'Oct 14, 2023', status: 'Stand-By' as 'Assigned' | 'Stand-By' },
+    { id: 'DRN-2023-005', location: 'Chicago, IL', lastUsed: 'Oct 13, 2023', status: 'Stand-By' as 'Assigned' | 'Stand-By' },
+  ];
 
   return (
-    <ScrollView className="flex-1 bg-white">
-      <View className="p-6">
-        <View className="bg-gray-50 rounded-xl p-6 shadow-sm">
-          <Text className="text-2xl font-bold text-gray-800 mb-6">
-            Welcome, {user?.userName}!
-          </Text>
-          
-          <View className="space-y-4">
-            <InfoItem label="Email" value={user?.email} />
-            <InfoItem label="Designation" value={user?.designation} />
-            <InfoItem label="Location" value={user?.location} />
-            <InfoItem label="Permission Status" value={user?.permission} />
-          </View>
-        </View>
-
-        <View className="mt-8 bg-gray-50 rounded-xl p-6 shadow-sm">
-          <Text className="text-xl font-semibold text-gray-800 mb-4">
-            Quick Actions
-          </Text>
-          
-          <View className="space-y-4">
-            {/* Add your quick action buttons or cards here */}
-            <View className="bg-white p-4 rounded-lg border border-gray-200">
-              <Text className="text-gray-600">
-                Your dashboard content will appear here. Add components and features based on your application's requirements.
-              </Text>
-            </View>
-          </View>
-        </View>
+    <SafeAreaView className="flex-1 bg-white">
+      {/* Header */}
+      <View className="flex-row items-center justify-between mt-10 px-4 py-4">
+        <Text className="text-3xl font-bold text-gray-800">Drones</Text>
+        <TouchableOpacity onPress={() => setMenuVisible(true)}>
+          <Bars3Icon size={30} color="black" />
+        </TouchableOpacity>
       </View>
-    </ScrollView>
+
+      {/* Select a drone text */}
+      <View className="px-4 py-2">
+        <Text className="text-gray-600 text-lg">Select a drone to view details</Text>
+      </View>
+
+      {/* Tabs */}
+      <View className="flex-row px-4 mt-2">
+        <TouchableOpacity 
+          className={`pb-2 ${activeTab === 'available' ? 'border-b-2 border-orange-500' : ''} mr-6`}
+          onPress={() => setActiveTab('available')}
+        >
+          <Text className={`${activeTab === 'available' ? 'text-orange-500' : 'text-gray-500'} text-lg font-semibold`}>Available</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          className={`pb-2 ${activeTab === 'inFlight' ? 'border-b-2 border-orange-500' : ''}`}
+          onPress={() => setActiveTab('inFlight')}
+        >
+          <Text className={`${activeTab === 'inFlight' ? 'text-orange-500' : 'text-gray-500'} text-lg font-semibold`}>In Flight</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Search Bar */}
+      <View className="flex-row items-center bg-gray-100 rounded-lg mx-4 mt-4 px-3 py-2">
+        <MagnifyingGlassIcon size={20} color="gray" />
+        <TextInput
+          className="flex-1 ml-2 text-base text-gray-700"
+          placeholder="Search drones..."
+          placeholderTextColor="gray"
+        />
+      </View>
+
+      {/* Drone List */}
+      <ScrollView className="flex-1 mt-4 px-4 pb-20">
+        {drones.map((drone) => (
+          <DroneCard key={drone.id} {...drone} />
+        ))}
+      </ScrollView>
+
+      {/* Bottom Navigation */}
+      <View className="absolute bottom-0 w-full bg-white border-t border-gray-200 flex-row justify-around py-2">
+        <TouchableOpacity 
+          className="items-center"
+          onPress={() => setActiveNav('drones')}
+        >
+          {activeNav === 'drones' ? <HomeSolid size={24} color="#ea580c" /> : <HomeOutline size={24} color="gray" />}
+          <Text className={`${activeNav === 'drones' ? 'text-orange-600' : 'text-gray-500'} text-xs`}>Drones</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          className="items-center"
+          onPress={() => setActiveNav('history')}
+        >
+          {activeNav === 'history' ? <ClockSolid size={24} color="#ea580c" /> : <ClockOutline size={24} color="gray" />}
+          <Text className={`${activeNav === 'history' ? 'text-orange-600' : 'text-gray-500'} text-xs`}>History</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Hamburger Menu */}
+      <HamburgerMenu isVisible={isMenuVisible} onClose={() => setMenuVisible(false)} />
+    </SafeAreaView>
   );
 }
 

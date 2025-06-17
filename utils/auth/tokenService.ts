@@ -1,14 +1,20 @@
 import { API_CONFIG } from '@/utils/api/config';
-import { AuthResponse } from '@/utils/auth/types';
+import { AuthResponse, User } from '@/utils/auth/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
+import { ITokenProvider } from './ITokenProvider';
 
 const TOKEN_KEY = 'auth_tokens';
-const REFRESH_TOKEN_URL = `${API_CONFIG.BASE_URL}/user/refresh-token`;
+const USER_KEY = 'auth_user';
 
-class TokenService {
+interface TokenData {
+  access_token: string;
+  refresh_token: string;
+}
+
+class TokenService implements ITokenProvider {
   private static instance: TokenService;
   private tokenRefreshPromise: Promise<AuthResponse> | null = null;
+  private httpClient: any; // Will be set after initialization
 
   private constructor() {}
 
@@ -19,12 +25,8 @@ class TokenService {
     return TokenService.instance;
   }
 
-  async saveTokens(tokens: { access_token: string; refresh_token: string }): Promise<void> {
-    try {
-      await AsyncStorage.setItem(TOKEN_KEY, JSON.stringify(tokens));
-    } catch (error) {
-      console.error('Error saving tokens:', error);
-    }
+  setHttpClient(client: any) {
+    this.httpClient = client;
   }
 
   async getTokens(): Promise<{ access_token: string | null; refresh_token: string | null }> {
@@ -37,11 +39,28 @@ class TokenService {
     }
   }
 
+  async saveTokens(data: AuthResponse | TokenData): Promise<void> {
+    try {
+      if ('user' in data) {
+        const { user, ...tokenData } = data;
+        await AsyncStorage.setItem(TOKEN_KEY, JSON.stringify(tokenData));
+        await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
+      } else {
+        await AsyncStorage.setItem(TOKEN_KEY, JSON.stringify(data));
+      }
+    } catch (error) {
+      console.error('Error saving tokens:', error);
+      throw error;
+    }
+  }
+
   async clearTokens(): Promise<void> {
     try {
       await AsyncStorage.removeItem(TOKEN_KEY);
+      await AsyncStorage.removeItem(USER_KEY);
     } catch (error) {
       console.error('Error clearing tokens:', error);
+      throw error;
     }
   }
 
@@ -55,7 +74,6 @@ class TokenService {
   }
 
   async refreshTokens(): Promise<AuthResponse> {
-    // If a refresh is already in progress, return the existing promise
     if (this.tokenRefreshPromise) {
       return this.tokenRefreshPromise;
     }
@@ -68,22 +86,14 @@ class TokenService {
           throw new Error('No refresh token available');
         }
 
-        const response = await axios.post<AuthResponse>(
-          REFRESH_TOKEN_URL,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${refresh_token}`,
-            },
-          }
-        );
+        const response = await this.httpClient.post('/user/refresh-token', {}, {
+          headers: {
+            Authorization: `Bearer ${refresh_token}`,
+          },
+        }) as AuthResponse;
 
-        await this.saveTokens({
-          access_token: response.data.access_token,
-          refresh_token: response.data.refresh_token,
-        });
-
-        return response.data;
+        await this.saveTokens(response);
+        return response;
       } catch (error) {
         await this.clearTokens();
         throw error;
@@ -93,6 +103,24 @@ class TokenService {
     })();
 
     return this.tokenRefreshPromise;
+  }
+
+  async logout(): Promise<boolean> {
+    try {
+      if (!this.httpClient) {
+        console.error('Logout failed: httpClient is not set on tokenService.');
+        await this.clearTokens();
+        return false;
+      }
+      await this.httpClient.post('/user/logout', {});
+      await this.clearTokens();
+      return true;
+    } catch (error) {
+      // Optionally log or handle error, but still clear tokens
+      console.error('Logout API call failed:', error);
+      await this.clearTokens();
+      return false;
+    }
   }
 }
 

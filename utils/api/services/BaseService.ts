@@ -1,57 +1,58 @@
-import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import axiosInstance from '../axiosInstance';
+import { httpClient } from '../init';
 
 export abstract class BaseService {
-  protected constructor(protected readonly basePath: string) {}
-
-  protected async get<T>(endpoint: string, config?: AxiosRequestConfig): Promise<T> {
-    const response: AxiosResponse<T> = await axiosInstance.get(
-      this.getFullPath(endpoint),
-      config
-    );
-    return response.data;
+  protected constructor(protected readonly basePath: string) {
+    if (!basePath) {
+      throw new Error('Base path is required');
+    }
   }
 
-  protected async post<T>(endpoint: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    console.log('Making request to:', this.getFullPath(endpoint));
-    const response: AxiosResponse<T> = await axiosInstance.post(
-      this.getFullPath(endpoint),
-      data,
-      config
-    );
-    console.log('Response:', response.data);
-    return response.data;
+  protected async get<T>(endpoint: string, config?: RequestInit): Promise<T> {
+    const path = this.getFullPath(endpoint);
+    console.log('GET request to:', path);
+    return httpClient.get<T>(path, config);
   }
 
-  protected async put<T>(endpoint: string, data: any, config?: AxiosRequestConfig): Promise<T> {
-    const response: AxiosResponse<T> = await axiosInstance.put(
-      this.getFullPath(endpoint),
-      data,
-      config
-    );
-    return response.data;
+  protected async post<T>(endpoint: string, data?: any, config?: RequestInit): Promise<T> {
+    const path = this.getFullPath(endpoint);
+    console.log('POST request to:', path, 'with data:', data);
+    const response = await httpClient.post<T>(path, data, config);
+    console.log('Response:', response);
+    return response;
   }
 
-  protected async delete<T>(endpoint: string, config?: AxiosRequestConfig): Promise<T> {
-    const response: AxiosResponse<T> = await axiosInstance.delete(
-      this.getFullPath(endpoint),
-      config
-    );
-    return response.data;
+  protected async put<T>(endpoint: string, data: any, config?: RequestInit): Promise<T> {
+    const path = this.getFullPath(endpoint);
+    console.log('PUT request to:', path);
+    return httpClient.put<T>(path, data, config);
+  }
+
+  protected async delete<T>(endpoint: string, config?: RequestInit): Promise<T> {
+    const path = this.getFullPath(endpoint);
+    console.log('DELETE request to:', path);
+    return httpClient.delete<T>(path, config);
   }
 
   private getFullPath(endpoint: string): string {
-    // Remove any leading slashes from endpoint and basePath
-    const cleanBasePath = this.basePath.replace(/^\/+/, '');
-    const cleanEndpoint = endpoint.replace(/^\/+/, '');
-    return `/${cleanBasePath}/${cleanEndpoint}`.replace(/\/+/g, '/');
+    if (!endpoint) {
+      throw new Error('Endpoint is required');
+    }
+
+    // Remove any leading/trailing slashes
+    const cleanBasePath = this.basePath.replace(/^\/+|\/+$/g, '');
+    const cleanEndpoint = endpoint.replace(/^\/+|\/+$/g, '');
+
+    // Construct the path
+    const path = `/${cleanBasePath}/${cleanEndpoint}`.replace(/\/+/g, '/');
+    console.log('Constructed path:', path);
+    return path;
   }
 
   protected handleError(error: unknown): never {
-    if (error && typeof error === 'object' && 'response' in error && error.response) {
-      const response = error.response as { data?: { message?: string } };
-      throw new Error(response.data?.message || 'An error occurred');
+    console.error('Service error:', error);
+    if (error instanceof Error) {
+      throw error;
     }
-    throw error instanceof Error ? error : new Error('An unexpected error occurred');
+    throw new Error('An unexpected error occurred');
   }
 } 

@@ -1,12 +1,11 @@
-import Logo from "@/assets/images/logo.svg";
 import Button from "@/components/auth/Button";
-import Error from "@/components/Error";
+import { Error } from "@/components/Error";
 import authNavigation from '@/utils/auth/navigation';
-import axios from 'axios';
 import { useLocalSearchParams } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { authService } from '@/utils/api/services/AuthService';
 
 const OTPInput = ({
   value,
@@ -63,7 +62,7 @@ const OTPInput = ({
   );
 };
 
-const maskEmail = (email) => {
+const maskEmail = (email: string) => {
   if (!email) return '';
   const [name, domain] = email.split('@');
   const maskedName = name[0] + '*'.repeat(name.length - 1);
@@ -78,31 +77,35 @@ export default function VerifyOTP() {
   const [error, setError] = useState<string | null>(null);
   const { email } = useLocalSearchParams<{ email: string }>();
 
+  // Defensive check for email
+  if (!email) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white">
+        <Text className="text-red-500 text-lg font-bold">Email is missing. Please go back and enter your email.</Text>
+      </View>
+    );
+  }
+
   const handleVerifyOTP = async () => {
     if (!validateOTP()) return;
+    if (!email) {
+      setError('Email is missing. Please go back and enter your email.');
+      return;
+    }
 
     try {
       setLoading(true);
       setError(null);
 
-      const response = await axios.post('http://localhost:6000/user/verify-otp', {
-        email,
-        otp
-      });
+      // Use correct field name for backend
+      const response = await authService.verifyOTP(email, otp);
+      const message = (response as { message?: string })?.message || 'OTP verified.';
 
-      if (response.data) {
-        authNavigation.goToResetPassword({
-          email,
-          token: response.data.token
-        });
-      }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        setError(error.response?.data?.message || 'Invalid OTP. Please try again.');
-      } else {
-        setError('An unexpected error occurred. Please try again.');
-      }
-      // Alert.alert('Error', error instanceof Error ? error.message : 'Invalid OTP');
+      Alert.alert('Success', message);
+      // Update navigation to not require token
+      authNavigation.goToResetPassword({ email });
+    } catch (error: any) {
+      setError(error?.message || 'Invalid OTP. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -113,13 +116,11 @@ export default function VerifyOTP() {
 
     if (otp.length !== 6) {
       setError('Please enter the complete 6-digit code');
-      // Alert.alert('Error', 'Please enter the complete 6-digit code');
       return false;
     }
 
     if (!/^\d+$/.test(otp)) {
       setError('OTP should contain only numbers');
-      // Alert.alert('Error', 'OTP should contain only numbers');
       return false;
     }
 
@@ -129,11 +130,10 @@ export default function VerifyOTP() {
   const handleResendOTP = async () => {
     try {
       setError(null);
-      await axios.post('http://localhost:6000/user/forgot-password', { email });
+      await authService.forgotPassword(email);
       Alert.alert('Success', 'A new verification code has been sent to your email');
     } catch (error) {
-      setError('Failed to resend code. Please try again.');
-      // Alert.alert('Error', 'Failed to resend verification code');
+      setError(error?.message || 'Failed to resend code. Please try again.');
     }
   };
 
@@ -160,11 +160,7 @@ export default function VerifyOTP() {
             <Text className="text-gray-600 text-base">
               {maskEmail(email)}
             </Text>
-            <Text className="text-gray-900 text-center font-semibold">
-              {email}
-            </Text>
           </View>
-
 
           <View className="py-4">
             <Text className="text-base mb-4 text-lg">Enter OTP</Text>

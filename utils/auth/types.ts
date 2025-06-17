@@ -20,7 +20,6 @@ export interface AuthRoutes {
   };
   'reset-password': {
     email: string;
-    token: string;
   };
 }
 export interface User {
@@ -61,6 +60,9 @@ export interface LoginFormData {
   email: string;
   password: string;
 } 
+// export interface LogoutFormData {
+//   id: string;
+// }
 // Adding a default export to satisfy Expo Router
 const types = {};
 export default types; 

@@ -3,7 +3,7 @@ import Button from "@/components/auth/Button";
 import  PasswordInput  from '@/components/auth/PasswordInput';
 import { Error } from "@/components/Error";
 import authNavigation  from '@/utils/auth/navigation';
-import axios from 'axios';
+import { authService } from '@/utils/api/services/AuthService';
 import { useLocalSearchParams } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import { useState } from 'react';
@@ -14,7 +14,7 @@ export default function ResetPassword() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { email, token } = useLocalSearchParams<{ email: string; token: string }>();
+  const { email } = useLocalSearchParams<{ email: string }>();
 
   const handleResetPassword = async () => {
     if (!validatePasswords()) return;
@@ -23,31 +23,20 @@ export default function ResetPassword() {
       setLoading(true);
       setError(null);
       
-      const response = await axios.post('http://localhost:6000/user/reset-password', {
-        email,
-        token,
-        newPassword
-      });
+      const response = await authService.resetPassword(email, newPassword);
       
-      if (response.data) {
-        Alert.alert(
-          'Success',
-          'Your password has been reset successfully',
-          [
-            {
-              text: 'Login',
-              onPress: authNavigation.goToLogin
-            }
-          ]
-        );
-      }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        setError(error.response?.data?.message || 'Failed to reset password. Please try again.');
-      } else {
-        setError('An unexpected error occurred. Please try again.');
-      }
-      // Alert.alert('Error', error instanceof Error ? error.message : 'Failed to reset password');
+      Alert.alert(
+        'Success',
+        response.message,
+        [
+          {
+            text: 'Login',
+            onPress: authNavigation.goToLogin
+          }
+        ]
+      );
+    } catch (error: any) {
+      setError(error?.message || 'Failed to reset password. Please try again.');
     } finally {
       setLoading(false);
     }
