@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24" height="24" viewBox="0 0 24 24">
+	<defs>
+		<clipPath id="clipPath0071200708">
+			<path d="M0 0L24 0L24 24L0 24L0 0Z" fill-rule="nonzero" transform="matrix(1 0 0 1 -0 -0)"/>
+		</clipPath>
+	</defs>
+	<g clip-path="url(#clipPath0071200708)">
+		<rect width="19.5" height="18" rx="2.25" ry="2.25" stroke-linejoin="round" stroke-width="1.5" transform="matrix(1 0 0 1 2.25 3.75)" stroke="rgb(255, 103, 31)" fill="transparent"/>
+		<circle cx="1.125" cy="1.125" r="1.125" transform="matrix(1 0 0 1 12.75 9.75)" fill="rgb(255, 103, 31)"/>
+		<circle cx="1.125" cy="1.125" r="1.125" transform="matrix(1 0 0 1 16.5 9.75)" fill="rgb(255, 103, 31)"/>
+		<circle cx="1.125" cy="1.125" r="1.125" transform="matrix(1 0 0 1 12.75 13.5)" fill="rgb(255, 103, 31)"/>
+		<circle cx="1.125" cy="1.125" r="1.125" transform="matrix(1 0 0 1 16.5 13.5)" fill="rgb(255, 103, 31)"/>
+		<circle cx="1.125" cy="1.125" r="1.125" transform="matrix(1 0 0 1 5.25 13.5)" fill="rgb(255, 103, 31)"/>
+		<circle cx="1.125" cy="1.125" r="1.125" transform="matrix(1 0 0 1 9 13.5)" fill="rgb(255, 103, 31)"/>
+		<circle cx="1.125" cy="1.125" r="1.125" transform="matrix(1 0 0 1 5.25 17.25)" fill="rgb(255, 103, 31)"/>
+		<circle cx="1.125" cy="1.125" r="1.125" transform="matrix(1 0 0 1 9 17.25)" fill="rgb(255, 103, 31)"/>
+		<circle cx="1.125" cy="1.125" r="1.125" transform="matrix(1 0 0 1 12.75 17.25)" fill="rgb(255, 103, 31)"/>
+		<path d="M0 -0.75C-0.41421 -0.75 -0.75 -0.41421 -0.75 0L-0.75 1.5C-0.75 1.91421 -0.41421 2.25 0 2.25C0.41421 2.25 0.75 1.91421 0.75 1.5L0.75 0C0.75 -0.41421 0.41421 -0.75 0 -0.75ZM12 -0.75C11.5858 -0.75 11.25 -0.41421 11.25 0L11.25 1.5C11.25 1.91421 11.5858 2.25 12 2.25C12.4142 2.25 12.75 1.91421 12.75 1.5L12.75 0C12.75 -0.41421 12.4142 -0.75 12 -0.75Z" fill-rule="evenodd" transform="matrix(1 0 0 1 6 2.25)" fill="rgb(255, 103, 31)"/>
+		<path d="M19.5 0.75L0 0.75L0 -0.75L19.5 -0.75L19.5 0.75Z" fill-rule="nonzero" transform="matrix(1 0 0 1 2.25 7.5)" fill="rgb(255, 103, 31)"/>
+	</g>
+</svg>

@@ -3,14 +3,15 @@ import { ScrollView, Text, View, TouchableOpacity, TextInput, Platform, StatusBa
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../utils/auth/AuthContext';
 import { Bars3Icon, MagnifyingGlassIcon } from 'react-native-heroicons/outline';
-import { HomeIcon as HomeOutline, ClockIcon as ClockOutline } from 'react-native-heroicons/outline';
-import { HomeIcon as HomeSolid, ClockIcon as ClockSolid } from 'react-native-heroicons/solid';
 import HamburgerMenu from '../../components/HamburgerMenu';
 import DroneCard from '../../components/DroneCard';
 import Drone from "@/assets/images/drone.svg";
 import History from "@/assets/images/history.svg";
 import DroneActive from "@/assets/images/drone-active.svg";
 import HistoryActive from "@/assets/images/history-active.svg";
+import InFlightDroneCard from '../../components/InFlightDroneCard';
+import { droneService } from '../../utils/api/services/DroneService';
+import { useRouter } from 'expo-router';
 
 interface Layout {
   headerHeight: number;
@@ -21,39 +22,48 @@ interface Layout {
 interface Drone {
   id: string;
   location: string;
-  lastUsed: string;
+  lastMaintainance: string;
   status: 'Assigned' | 'Stand-By';
+}
+
+interface InFlightDrone {
+  id: string;
+  from: string;
+  to: string;
+  eta: string;
+  battery: number;
+  arrived?: boolean;
 }
 
 interface DashboardState {
   isLoading: boolean;
   error: string | null;
-  drones: Drone[];
+  drones: (Drone & Partial<InFlightDrone>)[];
 }
 
 // Memoized components
-const Header = React.memo(({ 
-  headerHeight, 
-  paddingTop, 
-  onMenuPress 
-}: { 
-  headerHeight: number; 
-  paddingTop: number; 
+const Header = React.memo(({
+  headerHeight,
+  paddingTop,
+  onMenuPress
+}: {
+  headerHeight: number;
+  paddingTop: number;
   onMenuPress: () => void;
 }) => (
-  <View 
+  <View
     className="flex-row items-center justify-between px-4 bg-white"
     style={{ height: headerHeight, paddingTop }}
     accessibilityRole="header"
   >
-    <Text 
+    <Text
       className="text-3xl font-bold text-gray-800"
       accessibilityRole="header"
       accessibilityLabel="Drones"
     >
       Drones
     </Text>
-    <TouchableOpacity 
+    <TouchableOpacity
       onPress={onMenuPress}
       accessibilityRole="button"
       accessibilityLabel="Open menu"
@@ -64,18 +74,18 @@ const Header = React.memo(({
   </View>
 ));
 
-const Tabs = React.memo(({ 
-  activeTab, 
-  onTabPress 
-}: { 
-  activeTab: 'available' | 'inFlight'; 
+const Tabs = React.memo(({
+  activeTab,
+  onTabPress
+}: {
+  activeTab: 'available' | 'inFlight';
   onTabPress: (tab: 'available' | 'inFlight') => void;
 }) => (
-  <View 
+  <View
     className="w-full flex-row px-4 mt-2 border-b border-gray-200"
     accessibilityRole="tablist"
   >
-    <TouchableOpacity 
+    <TouchableOpacity
       className={`pb-2 ${activeTab === 'available' ? 'border-b-2 border-orange-500' : ''} mr-6 flex-1`}
       onPress={() => onTabPress('available')}
       accessibilityRole="tab"
@@ -87,7 +97,7 @@ const Tabs = React.memo(({
         Available
       </Text>
     </TouchableOpacity>
-    <TouchableOpacity 
+    <TouchableOpacity
       className={`pb-2 ${activeTab === 'inFlight' ? 'border-b-2 border-orange-500' : ''} flex-1`}
       onPress={() => onTabPress('inFlight')}
       accessibilityRole="tab"
@@ -102,16 +112,16 @@ const Tabs = React.memo(({
   </View>
 ));
 
-const BottomNav = React.memo(({ 
-  activeNav, 
-  onNavPress, 
-  style 
-}: { 
-  activeNav: 'drones' | 'history'; 
+const BottomNav = React.memo(({
+  activeNav,
+  onNavPress,
+  style
+}: {
+  activeNav: 'drones' | 'history';
   onNavPress: (nav: 'drones' | 'history') => void;
   style: ViewStyle;
 }) => (
-  <View 
+  <View
     className="w-full bg-white border-t border-gray-200 flex-row justify-around"
     style={[
       style,
@@ -128,7 +138,7 @@ const BottomNav = React.memo(({
     ]}
     accessibilityRole="tablist"
   >
-    <TouchableOpacity 
+    <TouchableOpacity
       className="items-center justify-center flex-1 py-2"
       onPress={() => onNavPress('drones')}
       accessibilityRole="tab"
@@ -136,15 +146,15 @@ const BottomNav = React.memo(({
       accessibilityLabel="Drones tab"
       accessibilityHint="Navigate to drones list"
     >
-      {activeNav === 'drones' ? 
-        <DroneActive size={25} className="text-primary"/> : 
+      {activeNav === 'drones' ?
+        <DroneActive size={25} className="text-primary" /> :
         <Drone size={24} className="text-gray-500" />
       }
       <Text className={`${activeNav === 'drones' ? 'text-orange-600' : 'text-gray-500'} text-xs mt-1`}>
         Drones
       </Text>
     </TouchableOpacity>
-    <TouchableOpacity 
+    <TouchableOpacity
       className="items-center justify-center flex-1 py-2"
       onPress={() => onNavPress('history')}
       accessibilityRole="tab"
@@ -152,9 +162,9 @@ const BottomNav = React.memo(({
       accessibilityLabel="History tab"
       accessibilityHint="Navigate to history view"
     >
-      {activeNav === 'history' ? 
-        <HistoryActive size={24} className="text-primary" /> : 
-        <History size={24} className="text-gray-500"/>
+      {activeNav === 'history' ?
+        <HistoryActive size={24} className="text-primary" /> :
+        <History size={24} className="text-gray-500" />
       }
       <Text className={`${activeNav === 'history' ? 'text-orange-600' : 'text-gray-500'} text-xs mt-1`}>
         History
@@ -175,13 +185,14 @@ export default function Dashboard() {
     error: null,
     drones: [],
   });
+  const router = useRouter();
 
   // Calculate layout values that persist across re-renders
   const layout = useMemo<Layout>(() => {
     const windowHeight = Dimensions.get('window').height;
     const bottomNavHeight = Platform.OS === 'ios' ? 49 + insets.bottom : 56 + insets.bottom;
     const headerHeight = Platform.OS === 'ios' ? 44 + insets.top : 56 + insets.top;
-    
+
     return {
       headerHeight,
       bottomNavHeight,
@@ -194,36 +205,50 @@ export default function Dashboard() {
     const fetchDrones = async () => {
       try {
         setState(prev => ({ ...prev, isLoading: true, error: null }));
-        
-        // Simulated API call - replace with actual API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const mockDrones: Drone[] = [
-          { id: 'DRN-2023-001', location: 'New York City, NY', lastUsed: 'Oct 15, 2023', status: 'Assigned' },
-          { id: 'DRN-2023-002', location: 'Los Angeles, CA', lastUsed: 'Oct 16, 2023', status: 'Stand-By' },
-          { id: 'DRN-2023-003', location: 'San Francisco, CA', lastUsed: 'Oct 15, 2023', status: 'Stand-By' },
-          { id: 'DRN-2023-004', location: 'New York, NY', lastUsed: 'Oct 14, 2023', status: 'Stand-By' },
-          { id: 'DRN-2023-005', location: 'Chicago, IL', lastUsed: 'Oct 13, 2023', status: 'Stand-By' },
-        ];
-
-        setState(prev => ({ ...prev, isLoading: false, drones: mockDrones }));
+        if (activeTab === 'available') {
+          // Fetch available drones from DroneService
+          const response: any = await droneService.getAllDronesAtHub();
+          if (response && response.status === 'success' && Array.isArray(response.data)) {
+            // Map API data to DroneCard props
+            const drones = response.data.map((item: any) => ({
+              id: item.internal_id || item._id,
+              location: item.hub_location || 'Unknown',
+              lastMaintainance: item.last_maintenance_date ? new Date(item.last_maintenance_date).toLocaleDateString() : new Date(item.manufacturing_date).toLocaleDateString(),
+              status: item.current_flight_id ? "Assigned" : 'Stand-By',
+            }));
+            setState(prev => ({ ...prev, isLoading: false, drones }));
+          } else {
+            setState(prev => ({ ...prev, isLoading: false, drones: [], error: 'Invalid response from server' }));
+          }
+        } else {
+          // In-flight drones: use mock data for now
+          const mockInFlight: (Drone & Partial<InFlightDrone>)[] = [
+            { id: 'DRN-2024-156', from: 'Central Hub', to: 'Retail Store C', eta: 'Arrived', battery: 85, arrived: true, status: 'Assigned', lastMaintainance: 'Oct 17, 2023', location: 'Central Hub' },
+            { id: 'DRN-2024-157', from: 'Central Hub', to: 'Retail Store A', eta: '15 min', battery: 90, status: 'Assigned', lastMaintainance: 'Oct 17, 2023', location: 'Central Hub' },
+            { id: 'DRN-2024-158', from: 'East Wing', to: 'Retail Store B', eta: '20 min', battery: 82, status: 'Assigned', lastMaintainance: 'Oct 17, 2023', location: 'East Wing' },
+            { id: 'DRN-2024-159', from: 'West Wing', to: 'Retail Store D', eta: '12 min', battery: 88, status: 'Assigned', lastMaintainance: 'Oct 17, 2023', location: 'West Wing' },
+            { id: 'DRN-2024-160', from: 'North Hub', to: 'Retail Store E', eta: '25 min', battery: 95, status: 'Assigned', lastMaintainance: 'Oct 17, 2023', location: 'North Hub' },
+          ];
+          setState(prev => ({ ...prev, isLoading: false, drones: mockInFlight }));
+        }
       } catch (error) {
-        setState(prev => ({ 
-          ...prev, 
-          isLoading: false, 
-          error: error instanceof Error ? error.message : 'Failed to fetch drones' 
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          drones: [],
+          error: error instanceof Error ? error.message : 'Failed to fetch drones'
         }));
       }
     };
-
     fetchDrones();
-  }, []);
+  }, [activeTab]);
 
   // Filter drones based on search query and active tab
   const filteredDrones = useMemo(() => {
-    return state.drones.filter(drone => {
+    const dronesArray = Array.isArray(state.drones) ? state.drones : [];
+    return dronesArray.filter(drone => {
       const matchesSearch = drone.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          drone.location.toLowerCase().includes(searchQuery.toLowerCase());
+        drone.location.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesTab = activeTab === 'available' ? drone.status === 'Stand-By' : drone.status === 'Assigned';
       return matchesSearch && matchesTab;
     });
@@ -232,9 +257,17 @@ export default function Dashboard() {
   // Memoized callbacks
   const handleMenuPress = useCallback(() => setMenuVisible(true), []);
   const handleTabPress = useCallback((tab: 'available' | 'inFlight') => setActiveTab(tab), []);
-  const handleNavPress = useCallback((nav: 'drones' | 'history') => setActiveNav(nav), []);
+  const handleNavPress = useCallback((nav: 'drones' | 'history') => {
+    setActiveNav(nav);
+    if (nav === 'history') {
+      router.push('/(app)/history');
+    }
+  }, [router]);
   const handleMenuClose = useCallback(() => setMenuVisible(false), []);
   const handleSearchChange = useCallback((text: string) => setSearchQuery(text), []);
+  const handleDronePress = useCallback((drone: Drone & Partial<InFlightDrone>) => {
+    router.push({ pathname: '/(app)/drone-detail', params: { id: drone.id, assigned: drone.status === 'Assigned' ? '1' : '0' } });
+  }, [router]);
 
   // Styles
   const headerStyle: ViewStyle = {
@@ -259,7 +292,7 @@ export default function Dashboard() {
   const renderContent = () => {
     if (state.isLoading) {
       return (
-        <View 
+        <View
           className="flex-1 items-center justify-center"
           accessibilityRole="progressbar"
           accessibilityLabel="Loading drones"
@@ -272,12 +305,12 @@ export default function Dashboard() {
 
     if (state.error) {
       return (
-        <View 
+        <View
           className="flex-1 items-center justify-center px-4"
           accessibilityRole="alert"
         >
           <Text className="text-red-500 text-lg text-center mb-4">{state.error}</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             className="bg-orange-500 px-6 py-3 rounded-lg"
             onPress={() => setState(prev => ({ ...prev, isLoading: true, error: null }))}
             accessibilityRole="button"
@@ -292,7 +325,7 @@ export default function Dashboard() {
 
     if (filteredDrones.length === 0) {
       return (
-        <View 
+        <View
           className="flex-1 items-center justify-center px-4"
           accessibilityRole="none"
         >
@@ -304,7 +337,7 @@ export default function Dashboard() {
     }
 
     return (
-      <ScrollView 
+      <ScrollView
         className="flex-1 mt-4 px-4"
         contentContainerStyle={{
           paddingBottom: layout.bottomNavHeight + 20,
@@ -314,27 +347,41 @@ export default function Dashboard() {
         accessibilityLabel={`List of ${filteredDrones.length} drones`}
         showsVerticalScrollIndicator={false}
       >
-        {filteredDrones.map((drone) => (
-          <DroneCard key={drone.id} {...drone} />
-        ))}
+        {activeTab === 'inFlight'
+          ? filteredDrones.map((drone: Drone & Partial<InFlightDrone>) => (
+            <InFlightDroneCard
+              key={drone.id}
+              id={drone.id}
+              from={drone.from || drone.location}
+              to={drone.to || ''}
+              eta={drone.eta || ''}
+              battery={drone.battery || 0}
+              arrived={drone.arrived}
+              onPress={() => handleDronePress(drone)}
+            />
+          ))
+          : filteredDrones.map((drone: Drone & Partial<InFlightDrone>) => (
+            <DroneCard key={drone.id} {...drone} onPress={() => handleDronePress(drone)} />
+          ))
+        }
       </ScrollView>
     );
   };
 
   return (
-    <View 
+    <View
       className="flex-1 bg-white"
       accessibilityRole="none"
     >
       <StatusBar barStyle="dark-content" backgroundColor="white" />
-      
-      <Header 
+
+      <Header
         headerHeight={layout.headerHeight}
         paddingTop={insets.top}
         onMenuPress={handleMenuPress}
       />
 
-      <View 
+      <View
         className="px-4 py-2"
         accessibilityRole="none"
       >
@@ -343,7 +390,7 @@ export default function Dashboard() {
 
       <Tabs activeTab={activeTab} onTabPress={handleTabPress} />
 
-      <View 
+      <View
         className="flex-row items-center bg-gray-100 rounded-lg mx-4 mt-4 px-3 py-2"
         accessibilityRole="search"
       >
@@ -362,15 +409,15 @@ export default function Dashboard() {
 
       {renderContent()}
 
-      <BottomNav 
+      <BottomNav
         activeNav={activeNav}
         onNavPress={handleNavPress}
         style={bottomNavStyle}
       />
 
-      <HamburgerMenu 
-        isVisible={isMenuVisible} 
-        onClose={handleMenuClose} 
+      <HamburgerMenu
+        isVisible={isMenuVisible}
+        onClose={handleMenuClose}
       />
     </View>
   );
