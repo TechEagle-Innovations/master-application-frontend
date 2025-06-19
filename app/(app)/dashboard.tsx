@@ -291,7 +291,7 @@ export default function Dashboard() {
 
   const renderContent = () => {
     if (state.isLoading) {
-      return (
+  return (
         <View
           className="flex-1 items-center justify-center"
           accessibilityRole="progressbar"

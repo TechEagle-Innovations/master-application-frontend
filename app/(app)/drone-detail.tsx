@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DroneImage from '@/assets/images/droneImage.svg';
 import { ChevronLeft } from 'lucide-react-native';
 import { CalendarDays, PlaneTakeoff, Clock } from 'lucide-react-native';
+import { flightService, FlightHistoryItem } from '@/utils/api/services/FlightService';
 
 // Mock data for now
 const mockDrone = {
@@ -80,31 +81,6 @@ function DroneStats({ totalFlights, lastMaintenance }: { totalFlights: number; l
     );
 }
 
-// Flight History Component
-function FlightHistory({ history }: { history: { date: string; duration: string; title: string; location: string }[] }) {
-    return (
-        <View className="px-6">
-            <Text className="text-lg font-semibold text-gray-800 mb-3">Flight History</Text>
-            {history.map((flight, idx) => (
-                <View key={idx} className="bg-gray-50 rounded-xl p-4 mb-3">
-                    <View className="flex-row justify-between items-center mb-1">
-                        <View className="flex-row items-center">
-                            <Clock size={16} color="#6b7280" />
-                            <Text className="ml-2 text-gray-700 font-medium">{flight.date}</Text>
-                        </View>
-                        <Text className="text-gray-500">{flight.duration}</Text>
-                    </View>
-                    <Text className="text-gray-800 font-semibold mb-1">{flight.title}</Text>
-                    <View className="flex-row items-center">
-                        <Text className="text-gray-400 mr-1">&#9679;</Text>
-                        <Text className="text-gray-500">{flight.location}</Text>
-                    </View>
-                </View>
-            ))}
-        </View>
-    );
-}
-
 // Footer Actions Component
 function DroneFooterActions({ assigned, bottomInset }: { assigned: boolean; bottomInset: number }) {
     return (
@@ -132,16 +108,34 @@ function DroneFooterActions({ assigned, bottomInset }: { assigned: boolean; bott
     );
 }
 
+function useFlightHistory(droneId?: string) {
+    const [flightHistory, setFlightHistory] = useState<FlightHistoryItem[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!droneId) return;
+        setLoading(true);
+        setError(null);
+        flightService.getFlightHistory(droneId)
+            .then(setFlightHistory)
+            .catch((err: any) => setError(err.message || 'Failed to fetch flight history'))
+            .finally(() => setLoading(false));
+    }, [droneId]);
+
+    return { flightHistory, loading, error };
+}
+
 export default function DroneDetail() {
     const router = useRouter();
     const insets = useSafeAreaInsets();
     const params = useLocalSearchParams<{ id?: string; assigned?: string }>();
-    // Use params.id and params.assigned to determine which drone and if assigned
     const drone = {
         ...mockDrone,
         id: params.id || mockDrone.id,
         assigned: params.assigned === '1',
     };
+    const { flightHistory, loading, error } = useFlightHistory(drone.id);
 
     return (
         <View className="flex-1 bg-white">
@@ -154,8 +148,31 @@ export default function DroneDetail() {
                 <View className="items-center p-6 mb-4 bg-gray-100 ">
                     <DroneImage width={325} height={246} />
                 </View>
-                <DroneStats totalFlights={drone.totalFlights} lastMaintenance={drone.lastMaintenance} />
-                <FlightHistory history={drone.flightHistory} />
+                <DroneStats totalFlights={flightHistory.length} lastMaintenance={drone.lastMaintenance} />
+                <View className="px-6">
+                  <Text className="text-lg font-semibold text-gray-800 mb-3">Flight History</Text>
+                  {loading && <Text>Loading...</Text>}
+                  {error && <Text className="text-red-500">{error}</Text>}
+                  {!loading && !error && flightHistory.length === 0 && (
+                    <Text className="text-gray-500">No flight history found.</Text>
+                  )}
+                  {!loading && !error && flightHistory.map((flight, idx) => (
+                    <View key={flight._id || idx} className="bg-gray-50 rounded-xl p-4 mb-3">
+                      <View className="flex-row justify-between items-center mb-1">
+                        <View className="flex-row items-center">
+                          <Clock size={16} color="#6b7280" />
+                          <Text className="ml-2 text-gray-700 font-medium">{new Date(flight.date_created).toLocaleDateString()}</Text>
+                        </View>
+                        <Text className="text-gray-500">{flight.time_taken ? `${flight.time_taken} min` : '-'}</Text>
+                      </View>
+                      <Text className="text-gray-800 font-semibold mb-1">{flight.flight_type || flight.localFlightId}</Text>
+                      <View className="flex-row items-center">
+                        <Text className="text-gray-400 mr-1">&#9679;</Text>
+                        <Text className="text-gray-500">{flight.order_destination_location || '-'}</Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
             </ScrollView>
             <DroneFooterActions assigned={drone.assigned} bottomInset={insets.bottom} />
         </View>

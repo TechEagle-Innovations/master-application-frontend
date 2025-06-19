@@ -24,6 +24,24 @@ export default function AppLayout() {
           headerShown: false, // Hide header for history screen
         }}
       />
+       <Stack.Screen
+        name="shipment-detail"
+        options={{
+          headerShown: false, // Hide header for history screen
+        }}
+      />
+      <Stack.Screen
+        name="otp-confirmation"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="parcel-validation"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 } 

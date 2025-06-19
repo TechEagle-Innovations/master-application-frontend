@@ -6,7 +6,7 @@ const ENV = process.env.NODE_ENV || 'development';
 // Handle localhost for different platforms
 const getLocalhost = () => {
   if (Platform.OS === 'android') {
-    return 'http://192.168.1.6:6000'; // Android emulator localhost
+    return 'http://192.168.1.4:6000'; // Android emulator localhost
   }
   if (Platform.OS === 'ios') {
     return 'http://localhost:6000'; // iOS simulator localhost

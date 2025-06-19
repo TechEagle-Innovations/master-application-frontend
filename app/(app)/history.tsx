@@ -8,14 +8,8 @@ import Drone from "@/assets/images/drone.svg";
 import History from "@/assets/images/history.svg";
 import DroneActive from "@/assets/images/drone-active.svg";
 import HistoryActive from "@/assets/images/history-active.svg";
-
-const mockShipments = [
-  { id: 'SHP-2024-001', date: 'Jan 15, 2024', droneId: 'DRN-456', isNew: true },
-  { id: 'SHP-2024-002', date: 'Feb 20, 2024', droneId: 'DRN-457', isNew: false },
-  { id: 'SHP-2024-003', date: 'Mar 10, 2024', droneId: 'DRN-458', isNew: false },
-  { id: 'SHP-2024-004', date: 'Apr 25, 2024', droneId: 'DRN-459', isNew: false },
-  { id: 'SHP-2024-005', date: 'May 5, 2024', droneId: 'DRN-460', isNew: false },
-];
+import { useShipment } from '../../utils/ShipmentContext';
+import type { Shipment } from '../../types/shipment';
 
 const FILTERS = [
   { label: 'All', value: 'all' },
@@ -64,19 +58,19 @@ function HistoryTabs({ activeTab, onTabPress }: { activeTab: 'shipments' | 'main
 
 function FilterChips({ activeFilter, onFilterPress }: { activeFilter: string; onFilterPress: (filter: string) => void }) {
   return (
-    <ScrollView 
-  horizontal 
-  showsHorizontalScrollIndicator={false}
-  contentContainerStyle={{ 
-    paddingHorizontal: 16, // Adjust as needed
-    paddingVertical:12,    // mb-0
-    alignItems: 'center',  // Vertically center items
-  }}
-  style={{
-    flexGrow: 0,          // Prevents taking extra vertical space
-  }}
->
-{FILTERS.map((filter, idx) => (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={{
+        paddingHorizontal: 16, // Adjust as needed
+        paddingVertical: 12,    // mb-0
+        alignItems: 'center',  // Vertically center items
+      }}
+      style={{
+        flexGrow: 0,          // Prevents taking extra vertical space
+      }}
+    >
+      {FILTERS.map((filter, idx) => (
         <TouchableOpacity
           key={filter.value}
           className={`h-10 px-5 flex-row items-center justify-center rounded-full mr-3 ${activeFilter === filter.value ? 'bg-orange-500' : 'bg-gray-100'} ${idx === 0 ? 'shadow-md' : ''}`}
@@ -88,21 +82,34 @@ function FilterChips({ activeFilter, onFilterPress }: { activeFilter: string; on
           <Text className={`${activeFilter === filter.value ? 'text-white' : 'text-gray-700'} font-semibold text-base`}>{filter.label}</Text>
         </TouchableOpacity>
       ))}
-</ScrollView>
+    </ScrollView>
   );
 }
 
-function ShipmentCard({ id, date, droneId, isNew }: { id: string; date: string; droneId: string; isNew: boolean }) {
+function ShipmentCard({ shipment }: { shipment: Shipment }) {
+  const router = useRouter();
+  const { setShipment } = useShipment();
   return (
-    <TouchableOpacity className="bg-white border border-gray-100 rounded-2xl p-4 mb-3 shadow-sm  flex-row items-center justify-between" accessibilityRole="button" accessibilityLabel={`View details for shipment ${id}`}>
+    <TouchableOpacity
+      className="bg-white border border-gray-100 rounded-2xl p-4 mb-3 shadow-sm  flex-row items-center justify-between"
+      accessibilityRole="button"
+      accessibilityLabel={`View details for shipment ${shipment.invoiceNumber}`}
+      onPress={() => {
+        setShipment(shipment);
+        router.push({ pathname: '/(app)/shipment-detail' });
+      }}
+    >
       <View>
         <View className="flex-row items-center mb-2">
-          <Text className="text-xl mr-2">{id}</Text>
-          {isNew && <View className="w-2 h-2 rounded-full bg-orange-500" />}
+          <Text className="text-xl mr-2">{shipment.assignedAWBNumbers}</Text>
         </View>
         <View className="flex-row items-center">
-          <Text className="text-gray-400 mr-4">{date}</Text>
-          <Text className="text-gray-400">{droneId}</Text>
+          <Text className="text-gray-400 mr-4">{new Date(shipment.pickUpDetails.scheduledDate).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          })}</Text>
+          <Text className="text-gray-400">{shipment.d_Status[0].remarks}</Text>
         </View>
       </View>
       <Text className="text-4xl text-gray-300">›</Text>
@@ -158,20 +165,15 @@ export default function HistoryScreen() {
   const [search, setSearch] = useState('');
   const [isMenuVisible, setMenuVisible] = useState(false);
   const [activeNav, setActiveNav] = useState<'drones' | 'history'>('history');
-
+  const { shipments, setShipment } = useShipment();
   // Filtered data (mock logic)
-  const filteredShipments = mockShipments.filter((shipment) => {
+  const filteredShipments = shipments.filter((shipment) => {
     if (activeFilter === 'all') return true;
-    
-    // Parse the shipment date (format: 'Jan 15, 2024')
-    const [month, day, year] = shipment.date.split(' ').map(part => part.replace(',', ''));
-    const shipmentDate = new Date(`${month} ${day} ${year}`);
+    // Use pickup scheduled date for filtering
+    const shipmentDate = new Date(shipment.pickUpDetails.scheduledDate);
     const now = new Date();
-    
-    // Reset time part for accurate date comparison
     now.setHours(0, 0, 0, 0);
     shipmentDate.setHours(0, 0, 0, 0);
-    
     if (activeFilter === '7d') {
       const sevenDaysAgo = new Date(now);
       sevenDaysAgo.setDate(now.getDate() - 7);
@@ -189,8 +191,9 @@ export default function HistoryScreen() {
     }
     return true;
   }).filter((shipment) =>
-    shipment.id.toLowerCase().includes(search.toLowerCase()) ||
-    shipment.droneId.toLowerCase().includes(search.toLowerCase())
+    shipment.invoiceNumber.toLowerCase().includes(search.toLowerCase()) ||
+    shipment.senderDetails.address.addressLine.toLowerCase().includes(search.toLowerCase()) ||
+    shipment.receiverDetails.address.addressLine.toLowerCase().includes(search.toLowerCase())
   );
 
   const bottomNavHeight = Platform.OS === 'ios' ? 49 + insets.bottom : 56 + insets.bottom;
@@ -234,9 +237,9 @@ export default function HistoryScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {activeTab === 'shipments' && (
-          filteredShipments.length > 0 ? (
+          shipments.length > 0 ? (
             filteredShipments.map((shipment) => (
-              <ShipmentCard key={shipment.id} {...shipment} />
+              <ShipmentCard key={shipment.assignedAWBNumbers} shipment={shipment} />
             ))
           ) : (
             <View className="flex-1 items-center justify-center mt-8">
@@ -252,4 +255,5 @@ export default function HistoryScreen() {
       <HamburgerMenu isVisible={isMenuVisible} onClose={handleMenuClose} />
     </View>
   );
-} 
+}
+

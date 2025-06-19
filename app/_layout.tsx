@@ -1,4 +1,5 @@
 import { AuthProvider } from '@/utils/auth/AuthContext';
+import { ShipmentProvider } from '../utils/ShipmentContext';
 import { Stack, useRootNavigationState, useRouter, useSegments } from "expo-router";
 import { useEffect, useCallback } from "react";
 import { View } from "react-native";
@@ -53,7 +54,9 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <RootLayoutNav />
+      <ShipmentProvider>
+        <RootLayoutNav />
+      </ShipmentProvider>
     </AuthProvider>
   );
 }
