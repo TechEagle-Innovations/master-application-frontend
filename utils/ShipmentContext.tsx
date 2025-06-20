@@ -230,10 +230,57 @@ const shipmentData: Shipment[] = [
     }
 ]
 
+// New: Maintenance data and type
+export interface Maintenance {
+    id: string;
+    droneId: string;
+    droneName: string;
+    scheduledDate: string;
+    reason: string;
+    comments: string;
+    completed: boolean;
+    completionDate?: string;
+    workDone?: string[];
+    technicianComments?: string;
+}
+
+const maintenanceData: Maintenance[] = [
+    {
+        id: 'MTN-2024-0127',
+        droneId: 'DRN-2024-0127',
+        droneName: 'Vertiplane X3',
+        scheduledDate: '2024-01-27',
+        reason: 'Routine Maintenance Check',
+        comments: 'Regular quarterly inspection and calibration',
+        completed: true,
+        completionDate: '2024-01-27',
+        workDone: [
+            'Battery replacement',
+            'Propeller alignment',
+            'Firmware update',
+            'Sensor calibration',
+        ],
+        technicianComments: 'All systems functioning normally after maintenance. Next scheduled check in 3 months.'
+    },
+    {
+        id: 'MTN-2024-0128',
+        droneId: 'DRN-2024-0128',
+        droneName: 'Verticopter X5',
+        scheduledDate: '2024-02-15',
+        reason: 'Propeller Replacement',
+        comments: 'Propeller damage detected during pre-flight check',
+        completed: false,
+    },
+    // Add more records as needed
+];
+
 interface ShipmentContextProps {
     shipments: Shipment[];
     shipment: Shipment | null;
     setShipment: (shipment: Shipment | null) => void;
+    maintenanceRecords: Maintenance[];
+    maintenance: Maintenance | null;
+    setMaintenance: (maintenance: Maintenance | null) => void;
 }
 
 const ShipmentContext = createContext<ShipmentContextProps | undefined>(undefined);
@@ -241,9 +288,11 @@ const ShipmentContext = createContext<ShipmentContextProps | undefined>(undefine
 export const ShipmentProvider = ({ children }: { children: ReactNode }) => {
     const [shipment, setShipment] = useState<Shipment | null>(null);
     const [shipments] = useState<Shipment[]>(shipmentData);
+    const [maintenance, setMaintenance] = useState<Maintenance | null>(null);
+    const [maintenanceRecords] = useState<Maintenance[]>(maintenanceData);
 
     return (
-        <ShipmentContext.Provider value={{ shipments, shipment, setShipment }}>
+        <ShipmentContext.Provider value={{ shipments, shipment, setShipment, maintenanceRecords, maintenance, setMaintenance }}>
             {children}
         </ShipmentContext.Provider>
     );

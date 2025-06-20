@@ -8,7 +8,7 @@ import Drone from "@/assets/images/drone.svg";
 import History from "@/assets/images/history.svg";
 import DroneActive from "@/assets/images/drone-active.svg";
 import HistoryActive from "@/assets/images/history-active.svg";
-import { useShipment } from '../../utils/ShipmentContext';
+import { useShipment, Maintenance } from '../../utils/ShipmentContext';
 import type { Shipment } from '../../types/shipment';
 
 const FILTERS = [
@@ -117,6 +117,38 @@ function ShipmentCard({ shipment }: { shipment: Shipment }) {
   );
 }
 
+function MaintenanceCard({ maintenance }: { maintenance: Maintenance }) {
+  const router = useRouter();
+  const { setMaintenance } = useShipment();
+  return (
+    <TouchableOpacity
+      className="bg-white border border-gray-100 rounded-2xl p-4 mb-3 shadow-sm flex-row items-center justify-between"
+      accessibilityRole="button"
+      accessibilityLabel={`View details for maintenance ${maintenance.id}`}
+      onPress={() => {
+        setMaintenance(maintenance);
+        router.push('/(app)/maintenance-detail' as any);
+      }}
+    >
+      <View>
+        <View className="flex-row items-center mb-2">
+          <Text className="text-xl mr-2">{maintenance.droneName}</Text>
+          {!maintenance.completed && <View className="w-2 h-2 rounded-full bg-orange-500 ml-1" />}
+        </View>
+        <View className="flex-row items-center">
+          <Text className="text-gray-400 mr-4">{new Date(maintenance.scheduledDate).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          })}</Text>
+          <Text className="text-gray-400">{maintenance.droneId}</Text>
+        </View>
+      </View>
+      <Text className="text-4xl text-gray-300">›</Text>
+    </TouchableOpacity>
+  );
+}
+
 const BottomNav = React.memo(({ activeNav, onNavPress, style }: { activeNav: 'drones' | 'history'; onNavPress: (nav: 'drones' | 'history') => void; style: ViewStyle }) => (
   <View
     className="w-full bg-white border-t border-gray-200 flex-row justify-around"
@@ -165,7 +197,7 @@ export default function HistoryScreen() {
   const [search, setSearch] = useState('');
   const [isMenuVisible, setMenuVisible] = useState(false);
   const [activeNav, setActiveNav] = useState<'drones' | 'history'>('history');
-  const { shipments, setShipment } = useShipment();
+  const { shipments, setShipment, maintenanceRecords } = useShipment();
   // Filtered data (mock logic)
   const filteredShipments = shipments.filter((shipment) => {
     if (activeFilter === 'all') return true;
@@ -194,6 +226,33 @@ export default function HistoryScreen() {
     shipment.invoiceNumber.toLowerCase().includes(search.toLowerCase()) ||
     shipment.senderDetails.address.addressLine.toLowerCase().includes(search.toLowerCase()) ||
     shipment.receiverDetails.address.addressLine.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const filteredMaintenance = maintenanceRecords.filter((m) => {
+    if (activeFilter === 'all') return true;
+    const mDate = new Date(m.scheduledDate);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    mDate.setHours(0, 0, 0, 0);
+    if (activeFilter === '7d') {
+      const sevenDaysAgo = new Date(now);
+      sevenDaysAgo.setDate(now.getDate() - 7);
+      return mDate >= sevenDaysAgo;
+    }
+    if (activeFilter === '30d') {
+      const thirtyDaysAgo = new Date(now);
+      thirtyDaysAgo.setDate(now.getDate() - 30);
+      return mDate >= thirtyDaysAgo;
+    }
+    if (activeFilter === '3m') {
+      const threeMonthsAgo = new Date(now);
+      threeMonthsAgo.setMonth(now.getMonth() - 3);
+      return mDate >= threeMonthsAgo;
+    }
+    return true;
+  }).filter((m) =>
+    m.droneName.toLowerCase().includes(search.toLowerCase()) ||
+    m.droneId.toLowerCase().includes(search.toLowerCase())
   );
 
   const bottomNavHeight = Platform.OS === 'ios' ? 49 + insets.bottom : 56 + insets.bottom;
@@ -248,7 +307,15 @@ export default function HistoryScreen() {
           )
         )}
         {activeTab === 'maintenance' && (
-          <Text className="text-gray-400 text-center mt-8">No maintenance records found.</Text>
+          maintenanceRecords.length > 0 ? (
+            filteredMaintenance.map((m) => (
+              <MaintenanceCard key={m.id} maintenance={m} />
+            ))
+          ) : (
+            <View className="flex-1 items-center justify-center mt-8">
+              <Text className="text-gray-400 text-center">No maintenance records found for the selected filter.</Text>
+            </View>
+          )
         )}
       </ScrollView>
       <BottomNav activeNav={activeNav} onNavPress={handleNavPress} style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: bottomNavHeight, paddingBottom: insets.bottom }} />

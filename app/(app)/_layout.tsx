@@ -42,6 +42,30 @@ export default function AppLayout() {
           headerShown: false,
         }}
       />
+       <Stack.Screen
+        name="maintenance-detail"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="battery"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="profile"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="report-issue"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 } 

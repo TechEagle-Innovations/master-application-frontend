@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import { useOtp } from '../../hooks/useOtp';
+import Header from '@/components/Header';
 
 const OTP_LENGTH = 6;
 
@@ -43,11 +44,8 @@ export default function OTPConfirmation() {
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
-      <View className="flex-row items-center px-4 bg-white border-b border-gray-100" style={{ paddingTop: insets.top, minHeight: 56 + insets.top }}>
-        <TouchableOpacity onPress={router.back} className="p-2" accessibilityRole="button" accessibilityLabel="Go back">
-          <ChevronLeft size={24} color="#000" />
-        </TouchableOpacity>
-      </View>
+      
+      <Header insets={insets} text={""} />
       <View className="flex-1 px-6 pt-8">
         <Text className="text-3xl font-bold mb-5">Delivery Confirmation</Text>
         <Text className="text-lg text-gray-500 mb-12">OTP has been sent to +91 99********5</Text>

@@ -5,55 +5,28 @@ import { useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import { Camera, Image as ImageIcon } from 'lucide-react-native';
 import { useParcelPhoto } from '../../hooks/useParcelPhoto';
+import Header from '@/components/Header';
 
 export default function ParcelValidation() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { photo, loading, error, takePhoto, pickFromGallery } = useParcelPhoto();
+  const { photo, loading, error, takePhoto } = useParcelPhoto();
 
   const handleAddPhoto = async () => {
     await takePhoto();
   };
 
-  const handlePickGallery = async () => {
-    await pickFromGallery();
-  };
-
   const handleValidate = () => {
-    // Mark shipment as delivered, then navigate or show success
-    // For now, just go back
-    router.back();
+    router.push({ pathname: '/(app)/history' });
   };
 
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
-      <View className="flex-row items-center px-4 bg-white border-b border-gray-100" style={{ paddingTop: insets.top, minHeight: 56 + insets.top }}>
-        <TouchableOpacity onPress={router.back} className="p-2" accessibilityRole="button" accessibilityLabel="Go back">
-          <ChevronLeft size={24} color="#000" />
-        </TouchableOpacity>
-      </View>
+      <Header insets={insets} text={""} />
       <View className="flex-1 px-6 pt-8">
         <Text className="text-3xl font-bold mb-6">Parcel Validation</Text>
         <Text className="text-lg text-gray-500 mb-12">Click an Image of the Parcel</Text>
-        <View className="flex-row justify-center mb-4">
-          <TouchableOpacity
-            className="mx-2 px-4 py-2 border border-gray-300 rounded-lg flex-row items-center"
-            onPress={handleAddPhoto}
-            disabled={loading}
-          >
-            <Camera size={20} color="#94a3b8" />
-            <Text className="ml-2 text-gray-700">Take Photo</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className="mx-2 px-4 py-2 border border-gray-300 rounded-lg flex-row items-center"
-            onPress={handlePickGallery}
-            disabled={loading}
-          >
-            <ImageIcon size={20} color="#94a3b8" />
-            <Text className="ml-2 text-gray-700">Choose from Gallery</Text>
-          </TouchableOpacity>
-        </View>
         <TouchableOpacity
           className="border-2 border-dashed border-gray-300 rounded-2xl items-center justify-center py-10 mb-8"
           style={{ minHeight: 120 }}

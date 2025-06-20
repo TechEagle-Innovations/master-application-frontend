@@ -6,6 +6,7 @@ import DroneImage from '@/assets/images/droneImage.svg';
 import { ChevronLeft } from 'lucide-react-native';
 import { CalendarDays, PlaneTakeoff, Clock } from 'lucide-react-native';
 import { flightService, FlightHistoryItem } from '@/utils/api/services/FlightService';
+import Header from '@/components/Header';
 
 // Mock data for now
 const mockDrone = {
@@ -42,22 +43,6 @@ const mockDrone = {
     ],
 };
 
-// Header Component
-function DroneDetailHeader({ model, id, onBack, topInset }: { model: string; id: string; onBack: () => void; topInset: number }) {
-    return (
-        <View
-            className="flex-row items-center p-4 border-b border-gray-200"
-            style={{ paddingTop: topInset, minHeight: 56 + topInset }}
-        >
-            <TouchableOpacity onPress={onBack} className="p-2" accessibilityRole="button" accessibilityLabel="Go back">
-                <ChevronLeft size={24} color="#000" />
-            </TouchableOpacity>
-            <Text className="flex-1 text-center text-lg font-semibold mr-10">
-            # {id}
-            </Text>
-        </View>
-    );
-}
 
 // Stats Component
 function DroneStats({ totalFlights, lastMaintenance }: { totalFlights: number; lastMaintenance: string }) {
@@ -82,7 +67,8 @@ function DroneStats({ totalFlights, lastMaintenance }: { totalFlights: number; l
 }
 
 // Footer Actions Component
-function DroneFooterActions({ assigned, bottomInset }: { assigned: boolean; bottomInset: number }) {
+function DroneFooterActions({ assigned, bottomInset, droneId }: { assigned: boolean; bottomInset: number; droneId: string }) {
+    const router = useRouter();
     return (
         <View
             className="px-6 bg-white border-t border-gray-200"
@@ -101,7 +87,12 @@ function DroneFooterActions({ assigned, bottomInset }: { assigned: boolean; bott
                     <Text className="text-white text-lg font-semibold">Run Pre-Flight Checklist</Text>
                 </TouchableOpacity>
             )}
-            <TouchableOpacity className="bg-gray-100 rounded-xl py-4 items-center" accessibilityRole="button" accessibilityLabel="Report an Issue">
+            <TouchableOpacity 
+                className="bg-gray-100 rounded-xl py-4 items-center" 
+                accessibilityRole="button" 
+                accessibilityLabel="Report an Issue"
+                onPress={() => router.push({ pathname: '/(app)/report-issue', params: { id: droneId } })}
+            >
                 <Text className="text-gray-800 text-lg font-semibold">Report an Issue</Text>
             </TouchableOpacity>
         </View>
@@ -127,7 +118,6 @@ function useFlightHistory(droneId?: string) {
 }
 
 export default function DroneDetail() {
-    const router = useRouter();
     const insets = useSafeAreaInsets();
     const params = useLocalSearchParams<{ id?: string; assigned?: string }>();
     const drone = {
@@ -139,7 +129,8 @@ export default function DroneDetail() {
 
     return (
         <View className="flex-1 bg-white">
-            <DroneDetailHeader model={drone.model} id={drone.id} onBack={router.back} topInset={insets.top} />
+         
+            <Header insets={insets} text={`# ${drone.id}`} />
             <ScrollView
                 contentContainerStyle={{ paddingBottom: 120 + insets.bottom }}
                 showsVerticalScrollIndicator={false}
@@ -174,7 +165,7 @@ export default function DroneDetail() {
                   ))}
                 </View>
             </ScrollView>
-            <DroneFooterActions assigned={drone.assigned} bottomInset={insets.bottom} />
+            <DroneFooterActions assigned={drone.assigned} bottomInset={insets.bottom} droneId={drone.id} />
         </View>
     );
 } 

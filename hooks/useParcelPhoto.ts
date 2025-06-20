@@ -17,7 +17,7 @@ export function useParcelPhoto() {
         return;
       }
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         quality: 0.7,
       });
       if (!result.canceled && result.assets && result.assets.length > 0) {
@@ -33,34 +33,34 @@ export function useParcelPhoto() {
     setLoading(false);
   };
 
-  const pickFromGallery = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permission.granted) {
-        setError('Gallery permission is required');
-        setLoading(false);
-        return;
-      }
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.7,
-      });
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setPhoto(result.assets[0].uri);
-      } else if (result.canceled) {
-        setError('Image selection cancelled');
-      } else {
-        setError('Image not selected');
-      }
-    } catch (e) {
-      setError('Failed to select image');
-    }
-    setLoading(false);
-  };
+  // const pickFromGallery = async () => {
+  //   setLoading(true);
+  //   setError(null);
+  //   try {
+  //     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  //     if (!permission.granted) {
+  //       setError('Gallery permission is required');
+  //       setLoading(false);
+  //       return;
+  //     }
+  //     const result = await ImagePicker.launchImageLibraryAsync({
+  //       mediaTypes: ImagePicker.MediaTypeOptions.Images,
+  //       quality: 0.7,
+  //     });
+  //     if (!result.canceled && result.assets && result.assets.length > 0) {
+  //       setPhoto(result.assets[0].uri);
+  //     } else if (result.canceled) {
+  //       setError('Image selection cancelled');
+  //     } else {
+  //       setError('Image not selected');
+  //     }
+  //   } catch (e) {
+  //     setError('Failed to select image');
+  //   }
+  //   setLoading(false);
+  // };
 
   const reset = () => setPhoto(null);
 
-  return { photo, setPhoto, error, loading, takePhoto, pickFromGallery, reset };
+  return { photo, setPhoto, error, loading, takePhoto, reset };
 } 

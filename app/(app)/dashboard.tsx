@@ -268,7 +268,9 @@ export default function Dashboard() {
   const handleDronePress = useCallback((drone: Drone & Partial<InFlightDrone>) => {
     router.push({ pathname: '/(app)/drone-detail', params: { id: drone.id, assigned: drone.status === 'Assigned' ? '1' : '0' } });
   }, [router]);
+  const handleFlightPress = ()=>{
 
+  }
   // Styles
   const headerStyle: ViewStyle = {
     height: layout.headerHeight,
@@ -357,7 +359,7 @@ export default function Dashboard() {
               eta={drone.eta || ''}
               battery={drone.battery || 0}
               arrived={drone.arrived}
-              onPress={() => handleDronePress(drone)}
+              onPress={() => handleFlightPress()}
             />
           ))
           : filteredDrones.map((drone: Drone & Partial<InFlightDrone>) => (
