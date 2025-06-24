@@ -138,7 +138,7 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isVisible, onClose }) => 
                   <Battery size={24} color="black" />
                   <Text className="ml-3 text-lg">Batteries</Text>
                 </TouchableOpacity>
-                <TouchableOpacity 
+                {/* <TouchableOpacity 
                   className="flex-row items-center p-6 active:bg-gray-100"
                   accessibilityRole="button"
                   accessibilityLabel="Add a Location"
@@ -153,7 +153,7 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isVisible, onClose }) => 
                 >
                   <Help size={24} color="black" />
                   <Text className="ml-3 text-lg">Help and Support</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
 
               {/* Log out */}
@@ -164,13 +164,13 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isVisible, onClose }) => 
                 }}
               >
                 <TouchableOpacity 
-                  className="flex-row items-center justify-center bg-white border border-gray-300 rounded-md py-3"
+                  className="flex-row items-center justify-center bg-gray-100 rounded-md py-3"
                   onPress={handleLogout}
                   accessibilityRole="button"
                   accessibilityLabel="Log out"
                 >
                   <Logout size={20} color="white" />
-                  <Text className="text-[#FF3B30] font-semibold ml-2">Log out</Text>
+                  <Text className="text-[#FF3B30] ml-2">Log out</Text>
                 </TouchableOpacity>
               </View>
             </View>

@@ -79,7 +79,7 @@ export default function ReportIssue() {
       >
         <View className="mt-6 mb-2">
           {/* Date Picker */}
-          <Text className="text-lg font-semibold text-gray-800 mb-2">Select Date</Text>
+          {/* <Text className="text-lg  text-gray-800 mb-2">Select Date</Text>
           <TouchableOpacity
             className={`border ${errors.date ? 'border-red-400' : 'border-gray-200'} rounded-xl px-4 py-4 flex-row items-center justify-between mb-2 bg-white`}
             onPress={() => setShowDatePicker(true)}
@@ -99,10 +99,10 @@ export default function ReportIssue() {
               minimumDate={new Date(Date.now() + 24 * 60 * 60 * 1000)}
               onChange={handleDateChange}
             />
-          )}
+          )} */}
 
           {/* Reason Picker */}
-          <Text className="text-lg font-semibold text-gray-800 mb-2 mt-2">Select Reason</Text>
+          <Text className="text-lg  text-gray-800 mb-2 mt-2">Select Reason</Text>
           <View className={`border ${errors.reason ? 'border-red-400' : 'border-gray-200'} rounded-xl mb-2 bg-white`}>
             <Picker
               selectedValue={reason}
@@ -118,7 +118,7 @@ export default function ReportIssue() {
           {errors.reason && <Text className="text-red-500 text-xs mb-2">{errors.reason}</Text>}
 
           {/* Comment */}
-          <Text className="text-lg font-semibold text-gray-800 mb-2 mt-2">Comment</Text>
+          <Text className="text-lg text-gray-800 mb-2 mt-2">Comment</Text>
           <TextInput
             className={`border ${errors.comment ? 'border-red-400' : 'border-gray-200'} rounded-xl px-4 py-4 mb-2 text-base text-gray-800 bg-white`}
             placeholder="Add additional notes about maintenance"

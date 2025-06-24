@@ -268,9 +268,10 @@ export default function Dashboard() {
   const handleDronePress = useCallback((drone: Drone & Partial<InFlightDrone>) => {
     router.push({ pathname: '/(app)/drone-detail', params: { id: drone.id, assigned: drone.status === 'Assigned' ? '1' : '0' } });
   }, [router]);
-  const handleFlightPress = ()=>{
+  const handleFlightPress = useCallback((drone: Drone & Partial<InFlightDrone>) => {
+    router.push({ pathname: '/(app)/drone-tracking', params: { flightId: drone.id } });
+  }, [router]);
 
-  }
   // Styles
   const headerStyle: ViewStyle = {
     height: layout.headerHeight,
@@ -359,7 +360,7 @@ export default function Dashboard() {
               eta={drone.eta || ''}
               battery={drone.battery || 0}
               arrived={drone.arrived}
-              onPress={() => handleFlightPress()}
+              onPress={() => handleFlightPress(drone)}
             />
           ))
           : filteredDrones.map((drone: Drone & Partial<InFlightDrone>) => (

@@ -83,7 +83,9 @@ function DroneFooterActions({ assigned, bottomInset, droneId }: { assigned: bool
             }}
         >
             {true && (
-                <TouchableOpacity className="bg-primary rounded-xl py-4 mb-3 items-center" accessibilityRole="button" accessibilityLabel="Run Pre-Flight Checklist">
+                <TouchableOpacity className="bg-primary rounded-xl py-4 mb-3 items-center" accessibilityRole="button" accessibilityLabel="Run Pre-Flight Checklist"
+                  onPress={() => router.push({ pathname: '/(app)/preflight-checklist', params: { id: droneId } })}
+                >
                     <Text className="text-white text-lg font-semibold">Run Pre-Flight Checklist</Text>
                 </TouchableOpacity>
             )}

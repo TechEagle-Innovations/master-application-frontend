@@ -66,6 +66,18 @@ export default function AppLayout() {
           headerShown: false,
         }}
       />
+        <Stack.Screen
+        name="preflight-checklist"
+        options={{
+          headerShown: false,
+        }}
+      />
+       <Stack.Screen
+        name="drone-tracking"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 } 
