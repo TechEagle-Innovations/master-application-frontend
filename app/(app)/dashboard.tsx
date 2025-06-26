@@ -223,7 +223,7 @@ export default function Dashboard() {
         } else {
           // In-flight drones: use mock data for now
           const mockInFlight: (Drone & Partial<InFlightDrone>)[] = [
-            { id: 'DRN-2024-156', from: 'Central Hub', to: 'Retail Store C', eta: 'Arrived', battery: 85, arrived: true, status: 'Assigned', lastMaintainance: 'Oct 17, 2023', location: 'Central Hub' },
+            { id: '685cfda1fa370924bfd5274b', from: 'Central Hub', to: 'Retail Store C', eta: 'Arrived', battery: 85, arrived: true, status: 'Assigned', lastMaintainance: 'Oct 17, 2023', location: 'Central Hub' },
             { id: 'DRN-2024-157', from: 'Central Hub', to: 'Retail Store A', eta: '15 min', battery: 90, status: 'Assigned', lastMaintainance: 'Oct 17, 2023', location: 'Central Hub' },
             { id: 'DRN-2024-158', from: 'East Wing', to: 'Retail Store B', eta: '20 min', battery: 82, status: 'Assigned', lastMaintainance: 'Oct 17, 2023', location: 'East Wing' },
             { id: 'DRN-2024-159', from: 'West Wing', to: 'Retail Store D', eta: '12 min', battery: 88, status: 'Assigned', lastMaintainance: 'Oct 17, 2023', location: 'West Wing' },

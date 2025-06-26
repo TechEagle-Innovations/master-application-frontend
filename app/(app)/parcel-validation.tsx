@@ -2,8 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ChevronLeft } from 'lucide-react-native';
-import { Camera, Image as ImageIcon } from 'lucide-react-native';
+import { Camera } from 'lucide-react-native';
 import { useParcelPhoto } from '../../hooks/useParcelPhoto';
 import Header from '@/components/Header';
 

@@ -1,14 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeft } from 'lucide-react-native';
 import FullBatteryIcon from '@/assets/images/full-battery.svg';
-import MediumBatteryIcon from '@/assets/images/battery.svg';
 import LowBatteryIcon from '@/assets/images/low-battery.svg';
 import LowBatteryIcon2 from '@/assets/images/low-battery2.svg';
 
-import { useRouter } from 'expo-router';
-import { prefetch } from 'expo-router/build/global-state/routing';
 import Header from '@/components/Header';
 
 const TABS = [

@@ -78,6 +78,12 @@ export default function AppLayout() {
           headerShown: false,
         }}
       />
+       <Stack.Screen
+        name="postflight-checklist"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 } 

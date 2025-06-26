@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Platform, StatusBar, ViewStyle } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Platform, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Bars3Icon, MagnifyingGlassIcon } from 'react-native-heroicons/outline';
 import HamburgerMenu from '../../components/HamburgerMenu';
