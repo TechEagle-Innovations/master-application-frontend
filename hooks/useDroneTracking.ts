@@ -1,3 +1,5 @@
+import { useAuth } from '@/utils/auth/AuthContext';
+import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import io from 'socket.io-client';
 
@@ -8,6 +10,7 @@ export interface DroneTelemetry {
   battery?: number;
   speed?: number;
   eta?: number;
+  alt?:number;
   distance?: number;
   image?: string; // URL to drone image from backend
   imageUrl?: string; // Alternative key for image URL
@@ -20,20 +23,25 @@ export interface RoutePoint {
   [key: string]: any; // For extensibility (alt, command, etc.)
 }
 
-export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected';
+export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected'| "error";
 const SOCKET_URL = 'https://training.ws5002.techeagle.org';
- const token ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImRueWFuZXNod2FyLnN1cnlhdmFuc2hpQHRlY2hlYWdsZS5pbiIsImlhdCI6MTc1MDkzMTEwMSwiZXhwIjoxNzUwOTQxOTAxfQ.W4qTHMffjZ3RfTag-q_DgaFGGd47NkMH2dCbsDXNjOQ"
 export function useDroneTracking(flightId: string) {
   const [drone, setDrone] = useState<DroneTelemetry | null>(null);
   const [route, setRoute] = useState<RoutePoint[]>([]);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting');
   const socketRef = useRef<any>(null);
-
+  const { clearskyToken } = useAuth()
+ 
   useEffect(() => {
+      console.log("clearskyToken", clearskyToken, "flightId", flightId);
+    if (!clearskyToken) {
+     setConnectionStatus('error');
+    }
     if (!flightId) return;
+    const token=clearskyToken
     const socket = io(SOCKET_URL, {
       transports: ['websocket'],
-      auth: { page: 'drone-tracking',token,  flightId },
+      auth: { page: 'drone-tracking', token, flightId },
     });
     socketRef.current = socket;
 
@@ -58,7 +66,7 @@ export function useDroneTracking(flightId: string) {
       console.log('[SOCKET] Successfully reconnected after', attempt, 'attempt(s)');
     });
     socket.on('server:monitor_data', (data: any) => {
-      console.log('[SOCKET] Received monitor data:', data);
+      // console.log('[SOCKET] Received monitor data:', data);
       // Accept both [flightId, data] and direct data
       let droneData: any = data;
       if (Array.isArray(data) && data[0] === flightId) {
@@ -71,6 +79,7 @@ export function useDroneTracking(flightId: string) {
       const speed = droneData.g_speed !== undefined ? Number(droneData.g_speed) : (droneData.speed !== undefined ? Number(droneData.speed) : undefined);
       const eta = droneData.eta !== undefined ? droneData.eta : undefined;
       const distance = droneData.distance !== undefined ? Number(droneData.distance) : undefined;
+      const alt= droneData.alt !==undefined ? Number(droneData.alt) : undefined;
       setDrone({
         id: flightId,
         lat,
@@ -78,6 +87,7 @@ export function useDroneTracking(flightId: string) {
         battery,
         speed,
         eta,
+        alt,
         distance,
         image: droneData.image || droneData.imageUrl, // prefer backend image if present
         ...droneData, // keep all other telemetry fields for extensibility
@@ -99,11 +109,11 @@ export function useDroneTracking(flightId: string) {
             // Accept both lat/long and lat/lng keys, and preserve extra fields
             const latitude = typeof pt.lat === 'string' ? parseFloat(pt.lat) : pt.lat;
             const longitude = pt.long !== undefined ? (typeof pt.long === 'string' ? parseFloat(pt.long) : pt.long)
-                              : (pt.lng !== undefined ? (typeof pt.lng === 'string' ? parseFloat(pt.lng) : pt.lng) : undefined);
+              : (pt.lng !== undefined ? (typeof pt.lng === 'string' ? parseFloat(pt.lng) : pt.lng) : undefined);
             return { latitude, longitude, ...pt };
           })
           .filter((pt: any) => typeof pt.latitude === 'number' && typeof pt.longitude === 'number' && !isNaN(pt.latitude) && !isNaN(pt.longitude));
-        console.log('[SOCKET] Parsed route:', parsedRoute);
+        // console.log('[SOCKET] Parsed route:', parsedRoute);
         setRoute(parsedRoute);
       }
     });

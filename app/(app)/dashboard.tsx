@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { ScrollView, Text, View, TouchableOpacity, TextInput, Platform, StatusBar, Dimensions, ViewStyle, ActivityIndicator } from 'react-native';
+import { ScrollView, Text, View, TouchableOpacity, TextInput, Platform, StatusBar, Dimensions, ViewStyle, ActivityIndicator, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../utils/auth/AuthContext';
 import { Bars3Icon, MagnifyingGlassIcon } from 'react-native-heroicons/outline';
@@ -11,36 +11,56 @@ import DroneActive from "@/assets/images/drone-active.svg";
 import HistoryActive from "@/assets/images/history-active.svg";
 import InFlightDroneCard from '../../components/InFlightDroneCard';
 import { droneService } from '../../utils/api/services/DroneService';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { FlightHistoryItem, flightService } from '@/utils/api/services/FlightService';
+import Notification, { NotificationType } from '@/components/Notification';
 
+// Layout interface remains the same
 interface Layout {
   headerHeight: number;
   bottomNavHeight: number;
   contentHeight: number;
 }
 
-interface Drone {
+// Separate interfaces for different drone states
+interface AvailableDrone {
   id: string;
   location: string;
-  lastMaintainance: string;
+  lastMaintenance: string;
   status: 'Assigned' | 'Stand-By';
+  currentFlightId?: string;
 }
 
 interface InFlightDrone {
   id: string;
+  flightId: string;
+  localFlightId: string;
   from: string;
   to: string;
   eta: string;
   battery: number;
-  arrived?: boolean;
+  status: 'In Transit' | 'Arrived';
+  startTime: string;
 }
 
-interface DashboardState {
+// Separate state interfaces for better type safety
+interface AvailableDronesState {
   isLoading: boolean;
   error: string | null;
-  drones: (Drone & Partial<InFlightDrone>)[];
+  drones: AvailableDrone[];
 }
 
+interface InFlightDronesState {
+  isLoading: boolean;
+  error: string | null;
+  drones: InFlightDrone[];
+}
+
+// Dashboard state combines both
+interface DashboardState {
+  available: AvailableDronesState;
+  inFlight: InFlightDronesState;
+}
 // Memoized components
 const Header = React.memo(({
   headerHeight,
@@ -176,18 +196,46 @@ const BottomNav = React.memo(({
 export default function Dashboard() {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
-  const [isMenuVisible, setMenuVisible] = useState<boolean>(false);
+  const params = useLocalSearchParams<{ message: string, type: NotificationType }>();
+  const [isMenuVisible, setMenuVisible] = useState(false);
   const [activeTab, setActiveTab] = useState<'available' | 'inFlight'>('available');
   const [activeNav, setActiveNav] = useState<'drones' | 'history'>('drones');
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [state, setState] = useState<DashboardState>({
-    isLoading: true,
-    error: null,
-    drones: [],
-  });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [notification, setNotification] = useState<{ message: string, type: NotificationType } | null>(null);
   const router = useRouter();
 
-  // Calculate layout values that persist across re-renders
+  // Separate states for available and in-flight drones
+  const [state, setState] = useState<DashboardState>({
+    available: {
+      isLoading: true,
+      error: null,
+      drones: [],
+    },
+    inFlight: {
+      isLoading: true,
+      error: null,
+      drones: [],
+    },
+  });
+
+  // Notification effect remains the same
+  useEffect(() => {
+    console.log("Notification params:", params.message, params.type);
+    if (params.message && params.type) {
+      setNotification({ message: params.message, type: params.type });
+
+      // Clear both the state and URL params after showing
+      const timer = setTimeout(() => {
+        setNotification(null);
+        // Optionally clear the params from URL
+        router.setParams({ message: undefined, type: undefined });
+      }, 4000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [params.message, params.type]);
+
+  // Layout calculation remains the same
   const layout = useMemo<Layout>(() => {
     const windowHeight = Dimensions.get('window').height;
     const bottomNavHeight = Platform.OS === 'ios' ? 49 + insets.bottom : 56 + insets.bottom;
@@ -200,59 +248,178 @@ export default function Dashboard() {
     };
   }, [insets.top, insets.bottom]);
 
-  // Fetch drones data
-  useEffect(() => {
-    const fetchDrones = async () => {
-      try {
-        setState(prev => ({ ...prev, isLoading: true, error: null }));
-        if (activeTab === 'available') {
-          // Fetch available drones from DroneService
-          const response: any = await droneService.getAllDronesAtHub();
-          if (response && response.status === 'success' && Array.isArray(response.data)) {
-            // Map API data to DroneCard props
-            const drones = response.data.map((item: any) => ({
-              id: item.internal_id || item._id,
-              location: item.hub_location || 'Unknown',
-              lastMaintainance: item.last_maintenance_date ? new Date(item.last_maintenance_date).toLocaleDateString() : new Date(item.manufacturing_date).toLocaleDateString(),
-              status: item.current_flight_id ? "Assigned" : 'Stand-By',
-            }));
-            setState(prev => ({ ...prev, isLoading: false, drones }));
-          } else {
-            setState(prev => ({ ...prev, isLoading: false, drones: [], error: 'Invalid response from server' }));
-          }
-        } else {
-          // In-flight drones: use mock data for now
-          const mockInFlight: (Drone & Partial<InFlightDrone>)[] = [
-            { id: '685cfda1fa370924bfd5274b', from: 'Central Hub', to: 'Retail Store C', eta: 'Arrived', battery: 85, arrived: true, status: 'Assigned', lastMaintainance: 'Oct 17, 2023', location: 'Central Hub' },
-            { id: 'DRN-2024-157', from: 'Central Hub', to: 'Retail Store A', eta: '15 min', battery: 90, status: 'Assigned', lastMaintainance: 'Oct 17, 2023', location: 'Central Hub' },
-            { id: 'DRN-2024-158', from: 'East Wing', to: 'Retail Store B', eta: '20 min', battery: 82, status: 'Assigned', lastMaintainance: 'Oct 17, 2023', location: 'East Wing' },
-            { id: 'DRN-2024-159', from: 'West Wing', to: 'Retail Store D', eta: '12 min', battery: 88, status: 'Assigned', lastMaintainance: 'Oct 17, 2023', location: 'West Wing' },
-            { id: 'DRN-2024-160', from: 'North Hub', to: 'Retail Store E', eta: '25 min', battery: 95, status: 'Assigned', lastMaintainance: 'Oct 17, 2023', location: 'North Hub' },
-          ];
-          setState(prev => ({ ...prev, isLoading: false, drones: mockInFlight }));
-        }
-      } catch (error) {
-        setState(prev => ({
-          ...prev,
-          isLoading: false,
-          drones: [],
-          error: error instanceof Error ? error.message : 'Failed to fetch drones'
-        }));
-      }
-    };
-    fetchDrones();
-  }, [activeTab]);
+  // Fetch available drones
+  const fetchAvailableDrones = useCallback(async () => {
+    try {
+      setState(prev => ({
+        ...prev,
+        available: {
+          ...prev.available,
+          isLoading: true,
+          error: null,
+        },
+      }));
 
-  // Filter drones based on search query and active tab
+      const response: any = await droneService.getAllDronesAtHub();
+
+      if (!response || response?.status !== 'success' || !Array.isArray(response?.data)) {
+        throw new Error('Invalid response structure from drones API');
+      }
+
+      const drones: AvailableDrone[] = response.data.map((item: any) => ({
+        id: item.internal_id || item._id,
+        location: item.hub_location || 'Unknown',
+        lastMaintenance: item.last_maintenance_date
+          ? new Date(item.last_maintenance_date).toLocaleDateString()
+          : new Date(item.manufacturing_date).toLocaleDateString(),
+        status: item.current_flight_id ? 'Assigned' : 'Stand-By',
+        currentFlightId: item.current_flight_id,
+      }));
+
+      setState(prev => ({
+        ...prev,
+        available: {
+          ...prev.available,
+          isLoading: false,
+          drones,
+        },
+      }));
+    } catch (error: any) {
+      console.error('Failed to fetch available drones:', error);
+
+      const errorMessage = error.response?.data?.message ||
+        error.message ||
+        'Failed to fetch available drones. Please try again.';
+
+      setState(prev => ({
+        ...prev,
+        available: {
+          ...prev.available,
+          isLoading: false,
+          error: errorMessage,
+          drones: [],
+        },
+      }));
+
+      // Show alert for serious errors
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        Alert.alert('Session Expired', 'Please login again');
+      } else if (error.response?.status >= 500) {
+        Alert.alert('Server Error', 'Our servers are experiencing issues. Please try again later.');
+      }
+    }
+  }, []);
+
+  // Fetch in-flight drones
+  const fetchInFlightDrones = useCallback(async () => {
+    try {
+      setState(prev => ({
+        ...prev,
+        inFlight: {
+          ...prev.inFlight,
+          isLoading: true,
+          error: null,
+        },
+      }));
+
+      const response: any = await flightService.getFlightHistory("T008VEE0003VERPL1003012024");
+
+      if (!response || response.status !== 'success' || !Array.isArray(response.data)) {
+        throw new Error('Invalid response structure from flights API');
+      }
+
+      // Filter for active flights (pre-flight completed but not post-flight)
+      const activeFlights = response.data.filter(
+        (flight: any) =>
+          flight.isPreFlightChecklistCompleted &&
+          !flight.isPostFlightChecklistCompleted &&
+          !flight.isCompleted &&
+          new Date().getDay() === new Date(flight.createdAt).getDay()
+      );
+
+      const drones: InFlightDrone[] = activeFlights.map((flight: any) => ({
+        id: flight.drone_id || 'Unknown',
+        flightId: flight._id,
+        localFlightId: flight.localFlightId,
+        from: flight.start_location || 'Unknown',
+        to: flight.end_location || 'Unknown',
+        eta: flight.time_taken ? `${flight.time_taken} mins` : 'Calculating...',
+        battery: 100, // Replace with actual data if available
+        status: 'In Transit', // You might have actual status from API
+        startTime: flight.date_created || new Date().toISOString(),
+      }));
+
+      setState(prev => ({
+        ...prev,
+        inFlight: {
+          ...prev.inFlight,
+          isLoading: false,
+          drones,
+        },
+      }));
+    } catch (error: any) {
+      console.error('Failed to fetch in-flight drones:', error);
+
+      const errorMessage = error.response?.data?.message ||
+        error.message ||
+        'Failed to fetch in-flight drones. Please try again.';
+
+      setState(prev => ({
+        ...prev,
+        inFlight: {
+          ...prev.inFlight,
+          isLoading: false,
+          error: errorMessage,
+          drones: [],
+        },
+      }));
+
+      // Show alert for serious errors
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        Alert.alert('Session Expired', 'Please login again');
+      } else if (error.response?.status >= 500) {
+        Alert.alert('Server Error', 'Our servers are experiencing issues. Please try again later.');
+      }
+    }
+  }, []);
+
+  // Fetch data when tab changes or component mounts
+  useEffect(() => {
+    if (activeTab === 'available') {
+      fetchAvailableDrones();
+    } else {
+      fetchInFlightDrones();
+    }
+  }, [activeTab, fetchAvailableDrones, fetchInFlightDrones]);
+
+  // Filter drones based on search query
   const filteredDrones = useMemo(() => {
-    const dronesArray = Array.isArray(state.drones) ? state.drones : [];
-    return dronesArray.filter(drone => {
-      const matchesSearch = drone.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        drone.location.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesTab = activeTab === 'available' ? drone.status === 'Stand-By' : drone.status === 'Assigned';
-      return matchesSearch && matchesTab;
+    const currentState = activeTab === 'available' ? state.available : state.inFlight;
+    const drones = currentState.drones;
+
+    if (!searchQuery.trim()) {
+      return drones;
+    }
+
+    const query = searchQuery.toLowerCase();
+
+    return drones.filter(drone => {
+      if (activeTab === 'available') {
+        const availableDrone = drone as AvailableDrone;
+        return (
+          availableDrone.id.toLowerCase().includes(query) ||
+          availableDrone.location.toLowerCase().includes(query)
+        );
+      } else {
+        const inFlightDrone = drone as InFlightDrone;
+        return (
+          inFlightDrone.id.toLowerCase().includes(query) ||
+          inFlightDrone.from.toLowerCase().includes(query) ||
+          inFlightDrone.to.toLowerCase().includes(query)
+        );
+      }
     });
-  }, [state.drones, searchQuery, activeTab]);
+  }, [activeTab, state.available.drones, state.inFlight.drones, searchQuery]);
 
   // Memoized callbacks
   const handleMenuPress = useCallback(() => setMenuVisible(true), []);
@@ -265,118 +432,160 @@ export default function Dashboard() {
   }, [router]);
   const handleMenuClose = useCallback(() => setMenuVisible(false), []);
   const handleSearchChange = useCallback((text: string) => setSearchQuery(text), []);
-  const handleDronePress = useCallback((drone: Drone & Partial<InFlightDrone>) => {
-    router.push({ pathname: '/(app)/drone-detail', params: { id: drone.id, assigned: drone.status === 'Assigned' ? '1' : '0' } });
-  }, [router]);
-  const handleFlightPress = useCallback((drone: Drone & Partial<InFlightDrone>) => {
-    router.push({ pathname: '/(app)/drone-tracking', params: { flightId: drone.id } });
-  }, [router]);
 
-  // Styles
-  const headerStyle: ViewStyle = {
-    height: layout.headerHeight,
-    paddingTop: insets.top,
-  };
+  const handleDronePress = useCallback((drone: AvailableDrone | InFlightDrone) => {
+    if (activeTab === 'available') {
+      const availableDrone = drone as AvailableDrone;
+      router.push({
+        pathname: '/(app)/drone-detail',
+        params: {
+          id: availableDrone.id,
+          assigned: availableDrone.status === 'Assigned' ? '1' : '0',
+          currentFlightId: availableDrone.currentFlightId || '',
 
-  const bottomNavStyle: ViewStyle = {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: layout.bottomNavHeight,
-    paddingBottom: insets.bottom,
-  };
-
-  const scrollViewStyle: ViewStyle = {
-    height: layout.contentHeight,
-    paddingBottom: layout.bottomNavHeight + 20, // Add extra padding for content
-  };
-
-  const renderContent = () => {
-    if (state.isLoading) {
-  return (
-        <View
-          className="flex-1 items-center justify-center"
-          accessibilityRole="progressbar"
-          accessibilityLabel="Loading drones"
-        >
-          <ActivityIndicator size="large" color="#ea580c" />
-          <Text className="mt-4 text-gray-600">Loading drones...</Text>
-        </View>
-      );
+        }
+      });
+    } else {
+      const inFlightDrone = drone as InFlightDrone;
+      router.push({
+        pathname: '/(app)/drone-tracking',
+        params: {
+          flightId: inFlightDrone.flightId,
+          localFlightId: inFlightDrone.localFlightId,
+          droneId: inFlightDrone.id,
+          from: inFlightDrone.from,
+          to: inFlightDrone.to,
+          eta: inFlightDrone.eta,
+        }
+      });
     }
+  }, [activeTab, router]);
 
-    if (state.error) {
-      return (
-        <View
-          className="flex-1 items-center justify-center px-4"
-          accessibilityRole="alert"
-        >
-          <Text className="text-red-500 text-lg text-center mb-4">{state.error}</Text>
-          <TouchableOpacity
-            className="bg-orange-500 px-6 py-3 rounded-lg"
-            onPress={() => setState(prev => ({ ...prev, isLoading: true, error: null }))}
-            accessibilityRole="button"
-            accessibilityLabel="Retry loading drones"
-            accessibilityHint="Attempts to load drones again"
-          >
-            <Text className="text-white font-semibold">Retry</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
+  // Render loading state
+  const renderLoading = () => (
+    <View className="flex-1 items-center justify-center">
+      <ActivityIndicator size="large" color="#ea580c" />
+      <Text className="mt-4 text-gray-600">
+        {activeTab === 'available'
+          ? 'Loading available drones...'
+          : 'Loading in-flight drones...'}
+      </Text>
+    </View>
+  );
 
-    if (filteredDrones.length === 0) {
-      return (
-        <View
-          className="flex-1 items-center justify-center px-4"
-          accessibilityRole="none"
-        >
-          <Text className="text-gray-600 text-lg text-center">
-            {searchQuery ? 'No drones found matching your search' : 'No drones available'}
-          </Text>
-        </View>
-      );
-    }
+  // Render error state
+  const renderError = () => {
+    const error = activeTab === 'available' ? state.available.error : state.inFlight.error;
 
     return (
-      <ScrollView
-        className="flex-1 mt-4 px-4"
-        contentContainerStyle={{
-          paddingBottom: layout.bottomNavHeight + 20,
-        }}
-        style={scrollViewStyle}
-        accessibilityRole="list"
-        accessibilityLabel={`List of ${filteredDrones.length} drones`}
-        showsVerticalScrollIndicator={false}
-      >
-        {activeTab === 'inFlight'
-          ? filteredDrones.map((drone: Drone & Partial<InFlightDrone>) => (
-            <InFlightDroneCard
-              key={drone.id}
-              id={drone.id}
-              from={drone.from || drone.location}
-              to={drone.to || ''}
-              eta={drone.eta || ''}
-              battery={drone.battery || 0}
-              arrived={drone.arrived}
-              onPress={() => handleFlightPress(drone)}
-            />
-          ))
-          : filteredDrones.map((drone: Drone & Partial<InFlightDrone>) => (
-            <DroneCard key={drone.id} {...drone} onPress={() => handleDronePress(drone)} />
-          ))
-        }
-      </ScrollView>
+      <View className="flex-1 items-center justify-center px-4">
+        <Text className="text-red-500 text-lg text-center mb-4">
+          {error}
+        </Text>
+        <TouchableOpacity
+          className="bg-orange-500 px-6 py-3 rounded-lg"
+          onPress={activeTab === 'available' ? fetchAvailableDrones : fetchInFlightDrones}
+        >
+          <Text className="text-white font-semibold">Retry</Text>
+        </TouchableOpacity>
+      </View>
     );
   };
 
+  // Render empty state
+  const renderEmpty = () => (
+    <View className="flex-1 items-center justify-center px-4">
+      <Text className="text-gray-600 text-lg text-center">
+        {searchQuery
+          ? 'No results found matching your search'
+          : activeTab === 'available'
+            ? 'No drones currently available'
+            : 'No drones currently in flight'}
+      </Text>
+    </View>
+  );
+
+  // Render drone list
+  const renderDroneList = () => {
+    if (activeTab === 'available') {
+      return (
+        <ScrollView
+          className="flex-1 mt-4 px-4"
+          contentContainerStyle={{ paddingBottom: layout.bottomNavHeight + 20 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {(filteredDrones as AvailableDrone[]).map((drone) => (
+            <DroneCard
+              key={drone.id}
+              id={drone.id}
+              location={drone.location}
+              lastMaintainance={drone.lastMaintenance}
+              status={drone.status}
+              onPress={() => handleDronePress(drone)}
+            />
+          ))}
+        </ScrollView>
+      );
+    } else {
+      return (
+        <ScrollView
+          className="flex-1 mt-4 px-4"
+          contentContainerStyle={{ paddingBottom: layout.bottomNavHeight + 20 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {(filteredDrones as InFlightDrone[]).map((drone) => (
+            <InFlightDroneCard
+              key={drone.flightId}
+              id={drone.localFlightId}
+              droneId={drone.id}
+              from={drone.from}
+              to={drone.to}
+              eta={drone.eta}
+              battery={drone.battery}
+              // status={drone.status}
+              onPress={() => handleDronePress(drone)}
+            />
+          ))}
+        </ScrollView>
+      );
+    }
+  };
+
+  // Main render function
+  const renderContent = () => {
+    const currentState = activeTab === 'available' ? state.available : state.inFlight;
+
+    if (currentState.isLoading) {
+      return renderLoading();
+    }
+
+    if (currentState.error) {
+      return renderError();
+    }
+
+    if (filteredDrones.length === 0) {
+      return renderEmpty();
+    }
+
+    return renderDroneList();
+  };
+
+  // Keep your existing JSX return statement
   return (
-    <View
-      className="flex-1 bg-white"
-      accessibilityRole="none"
-    >
+    <View className="flex-1 bg-white">
       <StatusBar barStyle="dark-content" backgroundColor="white" />
+
+      {/* Notification Snackbar */}
+      {notification && (
+        <Notification
+          key={`${notification.message}-${Date.now()}`} // Unique key to force re-render
+          message={notification.message}
+          type={notification.type}
+          onDismiss={() => setNotification(null)}
+          position="top"
+          duration={4000}
+        />
+      )}
 
       <Header
         headerHeight={layout.headerHeight}
@@ -384,19 +593,13 @@ export default function Dashboard() {
         onMenuPress={handleMenuPress}
       />
 
-      <View
-        className="px-4 py-2"
-        accessibilityRole="none"
-      >
+      <View className="px-4 py-2">
         <Text className="text-gray-600 text-lg">Select a drone to view details</Text>
       </View>
 
       <Tabs activeTab={activeTab} onTabPress={handleTabPress} />
 
-      <View
-        className="flex-row items-center bg-gray-100 rounded-lg mx-4 mt-4 px-3 py-2"
-        accessibilityRole="search"
-      >
+      <View className="flex-row items-center bg-gray-100 rounded-lg mx-4 mt-4 px-3 py-2">
         <MagnifyingGlassIcon size={20} color="gray" />
         <TextInput
           className="flex-1 ml-2 text-base text-gray-700"
@@ -404,9 +607,6 @@ export default function Dashboard() {
           placeholderTextColor="gray"
           value={searchQuery}
           onChangeText={handleSearchChange}
-          accessibilityRole="search"
-          accessibilityLabel="Search drones"
-          accessibilityHint="Type to search for drones by ID or location"
         />
       </View>
 
@@ -415,7 +615,14 @@ export default function Dashboard() {
       <BottomNav
         activeNav={activeNav}
         onNavPress={handleNavPress}
-        style={bottomNavStyle}
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: layout.bottomNavHeight,
+          paddingBottom: insets.bottom,
+        }}
       />
 
       <HamburgerMenu

@@ -6,6 +6,7 @@ import DroneIcon from '@/assets/images/droneIcon.svg';
 interface InFlightDroneCardProps {
   id: string;
   from: string;
+  droneId: string;  // Add this line
   to: string;
   eta: string;
   battery: number;
@@ -13,7 +14,7 @@ interface InFlightDroneCardProps {
   onPress?: () => void;
 }
 
-const InFlightDroneCard: React.FC<InFlightDroneCardProps> = ({ id, from, to, eta, battery, arrived, onPress }) => {
+const InFlightDroneCard: React.FC<InFlightDroneCardProps> = ({ id, droneId, from, to, eta, battery, arrived, onPress }) => {
   return (
     <TouchableOpacity
       className={`rounded-2xl p-4 mb-4 shadow-md ${arrived ? 'bg-orange-500' : 'bg-white'}`}
@@ -33,14 +34,31 @@ const InFlightDroneCard: React.FC<InFlightDroneCardProps> = ({ id, from, to, eta
       <View className="flex-row items-center w-full">
         <View className="w-2 h-2 rounded-full bg-blue-500 mr-2" />
         <View className="flex-1 h-0.5 bg-white/60 dark:bg-gray-300" style={{ backgroundColor: arrived ? '#fff' : '#e5e7eb' }} />
-        <DroneIcon width={50} height={50} style={{ marginHorizontal: -14 }}  />
+        <DroneIcon width={50} height={50} style={{ marginHorizontal: -14 }} />
         <View className="flex-1 h-0.5 bg-white/60 dark:bg-gray-300" style={{ backgroundColor: arrived ? '#fff' : '#e5e7eb' }} />
         <View className={`w-2 h-2 rounded-full ${arrived ? 'bg-green-300' : 'bg-green-500'} ml-2`} />
       </View>
-      <View className="flex-row justify-between items-center">
-        <Text className={`text-base ${arrived ? 'text-white' : 'text-gray-700'}`}>{from}</Text>
-        <Text className={`font-bold ${arrived ? 'text-white' : 'text-gray-800'}`}>ETA: {arrived ? 'Arrived' : eta}</Text>
-        <Text className={`text-base ${arrived ? 'text-white' : 'text-gray-700'}`}>{to}</Text>
+      <View className="flex flex-row justify-between items-center w-full space-x-2">
+        {/* From location */}
+        <Text
+          className={`w-[45%] text-base truncate ${arrived ? 'text-white' : 'text-gray-700'}`}
+          numberOfLines={1}
+        >
+          {from.split(' ').slice(0, 7).join(' ')}{from.split(' ').length > 7 ? '...' : ''}
+        </Text>
+
+        {/* ETA center text */}
+        {/* <Text className={`flex-none px-2 font-bold ${arrived ? 'text-white' : 'text-gray-800'}`}>
+          {arrived ? 'Arrived' : `ETA: ${eta}`}
+        </Text> */}
+
+        {/* To location */}
+        <Text
+          className={`w-[45%] text-base text-right truncate ${arrived ? 'text-white' : 'text-gray-700'}`}
+          numberOfLines={1}
+        >
+          {to.split(' ').slice(0, 7).join(' ')}{to.split(' ').length > 7 ? '...' : ''}
+        </Text>
       </View>
     </TouchableOpacity>
   );

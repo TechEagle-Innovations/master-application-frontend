@@ -2,11 +2,11 @@ import { Platform } from 'react-native';
 
 // Get the environment from process.env or use development as default
 const ENV = process.env.NODE_ENV || 'development';
-
+const cms= "https://cdn.techeagle.in/"
 // Handle localhost for different platforms
 const getLocalhost = () => {
   if (Platform.OS === 'android') {
-    return 'http://192.168.1.8:6000'; // Android emulator localhost
+    return 'http://192.168.1.5:6000'; // Android emulator localhost
   }
   if (Platform.OS === 'ios') {
     return 'http://localhost:6000'; // iOS simulator localhost

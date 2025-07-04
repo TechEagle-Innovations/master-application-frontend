@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Platform, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Bars3Icon, MagnifyingGlassIcon } from 'react-native-heroicons/outline';
@@ -10,6 +10,7 @@ import DroneActive from "@/assets/images/drone-active.svg";
 import HistoryActive from "@/assets/images/history-active.svg";
 import { useShipment, Maintenance } from '../../utils/ShipmentContext';
 import type { Shipment } from '../../types/shipment';
+import { maintainanceService } from '@/utils/api/services/MaintainanceService';
 
 const FILTERS = [
   { label: 'All', value: 'all' },
@@ -124,7 +125,7 @@ function MaintenanceCard({ maintenance }: { maintenance: Maintenance }) {
     <TouchableOpacity
       className="bg-white border border-gray-100 rounded-2xl p-4 mb-3 shadow-sm flex-row items-center justify-between"
       accessibilityRole="button"
-      accessibilityLabel={`View details for maintenance ${maintenance.id}`}
+      accessibilityLabel={`View details for maintenance ${maintenance._id}`}
       onPress={() => {
         setMaintenance(maintenance);
         router.push('/(app)/maintenance-detail' as any);
@@ -132,16 +133,16 @@ function MaintenanceCard({ maintenance }: { maintenance: Maintenance }) {
     >
       <View>
         <View className="flex-row items-center mb-2">
-          <Text className="text-xl mr-2">{maintenance.droneName}</Text>
-          {!maintenance.completed && <View className="w-2 h-2 rounded-full bg-orange-500 ml-1" />}
+          <Text className="text-lg mr-2">{maintenance.droneId}</Text>
+          {!maintenance.isResolved && <View className="w-2 h-2 rounded-full bg-orange-500 ml-1" />}
         </View>
         <View className="flex-row items-center">
-          <Text className="text-gray-400 mr-4">{new Date(maintenance.scheduledDate).toLocaleDateString('en-US', {
+          <Text className="text-gray-400 mr-4">{new Date(maintenance.createdAt).toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
             year: 'numeric'
           })}</Text>
-          <Text className="text-gray-400">{maintenance.droneId}</Text>
+          <Text className="text-gray-400">{maintenance.status}</Text>
         </View>
       </View>
       <Text className="text-4xl text-gray-300">›</Text>
@@ -197,7 +198,30 @@ export default function HistoryScreen() {
   const [search, setSearch] = useState('');
   const [isMenuVisible, setMenuVisible] = useState(false);
   const [activeNav, setActiveNav] = useState<'drones' | 'history'>('history');
-  const { shipments, setShipment, maintenanceRecords } = useShipment();
+  const { shipments, setShipment, maintenanceRecords, setMaintenanceRecords, setShipments } = useShipment();
+  
+  useEffect(() => {
+    // const getShipments=async()=>{
+    //      try{
+    //       const res=await fetch('https://lapp.techeagle.in/api/v1/user/shipment/get_all');
+    //       const data=await res.json();
+    //       console.log(data);
+    //      }catch(error){
+    //       console.log(error);
+    //      }
+    //  }
+    //  getShipments();
+     const getMaintenanceRecords=async()=>{
+      try{
+        const res= await maintainanceService.getMaintenanceRecords() as Maintenance[];
+        setMaintenanceRecords(res);
+        console.log(res);
+      }catch(error){
+        console.log(error);
+      }
+    }
+    getMaintenanceRecords();
+  }, [activeNav]);
   // Filtered data (mock logic)
   const filteredShipments = shipments.filter((shipment) => {
     if (activeFilter === 'all') return true;
@@ -230,7 +254,7 @@ export default function HistoryScreen() {
 
   const filteredMaintenance = maintenanceRecords.filter((m) => {
     if (activeFilter === 'all') return true;
-    const mDate = new Date(m.scheduledDate);
+    const mDate = new Date(m.createdAt);
     const now = new Date();
     now.setHours(0, 0, 0, 0);
     mDate.setHours(0, 0, 0, 0);
@@ -251,8 +275,7 @@ export default function HistoryScreen() {
     }
     return true;
   }).filter((m) =>
-    m.droneName.toLowerCase().includes(search.toLowerCase()) ||
-    m.droneId.toLowerCase().includes(search.toLowerCase())
+    (typeof m.droneId === 'string' && m.droneId.toLowerCase().includes(search.toLowerCase()))
   );
 
   const bottomNavHeight = Platform.OS === 'ios' ? 49 + insets.bottom : 56 + insets.bottom;
@@ -309,7 +332,7 @@ export default function HistoryScreen() {
         {activeTab === 'maintenance' && (
           maintenanceRecords.length > 0 ? (
             filteredMaintenance.map((m) => (
-              <MaintenanceCard key={m.id} maintenance={m} />
+              <MaintenanceCard key={m._id} maintenance={m} />
             ))
           ) : (
             <View className="flex-1 items-center justify-center mt-8">

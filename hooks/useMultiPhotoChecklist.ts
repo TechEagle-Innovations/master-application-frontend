@@ -6,69 +6,48 @@ export function useMultiPhotoChecklist(count: number) {
   const [errors, setErrors] = useState<(string | null)[]>(Array(count).fill(null));
   const [loadingIndex, setLoadingIndex] = useState<number | null>(null);
 
-  const takePhotoForIndex = async (idx: number) => {
+  const takePhotoForIndex = async (idx: number): Promise<boolean> => {
     setLoadingIndex(idx);
-    setErrors((prev) => {
-      const next = [...prev];
-      next[idx] = null;
-      return next;
-    });
+    setErrors(prev => prev.map((e, i) => i === idx ? null : e));
+
     try {
       const permission = await ImagePicker.requestCameraPermissionsAsync();
       if (!permission.granted) {
-        setErrors((prev) => {
-          const next = [...prev];
-          next[idx] = 'Camera permission is required';
-          return next;
-        });
-        setLoadingIndex(null);
-        return;
+        setErrors(prev => prev.map((e, i) => i === idx ? 'Camera permission denied' : e));
+        return false;
       }
+
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ['images'],
-        quality: 0.7,
+        allowsEditing: false,
+        aspect: [4, 3],
+        quality: 0.8,
+        cameraType: ImagePicker.CameraType.back,
       });
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setPhotos((prev) => {
-          const next = [...prev];
-          next[idx] = result.assets[0].uri;
-          return next;
-        });
-      } else if (result.canceled) {
-        setErrors((prev) => {
-          const next = [...prev];
-          next[idx] = 'Photo capture cancelled';
-          return next;
-        });
-      } else {
-        setErrors((prev) => {
-          const next = [...prev];
-          next[idx] = 'Photo not taken';
-          return next;
-        });
+
+      if (result.canceled) {
+        return false;
       }
+
+      if (result.assets && result.assets.length > 0) {
+        setPhotos(prev => prev.map((p, i) => i === idx ? result.assets[0].uri : p));
+        return true;
+      }
+
+      setErrors(prev => prev.map((e, i) => i === idx ? 'No photo was taken' : e));
+      return false;
     } catch (e) {
-      setErrors((prev) => {
-        const next = [...prev];
-        next[idx] = 'Failed to take photo';
-        return next;
-      });
+      setErrors(prev => prev.map((e, i) => i === idx ? 'Failed to take photo' : e));
+      return false;
+    } finally {
+      setLoadingIndex(null);
     }
-    setLoadingIndex(null);
   };
 
   const resetPhotoForIndex = (idx: number) => {
-    setPhotos((prev) => {
-      const next = [...prev];
-      next[idx] = null;
-      return next;
-    });
-    setErrors((prev) => {
-      const next = [...prev];
-      next[idx] = null;
-      return next;
-    });
+    setPhotos(prev => prev.map((p, i) => i === idx ? null : p));
+    setErrors(prev => prev.map((e, i) => i === idx ? null : e));
   };
 
   return { photos, errors, loadingIndex, takePhotoForIndex, resetPhotoForIndex };
-} 
+}

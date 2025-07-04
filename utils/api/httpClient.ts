@@ -37,7 +37,7 @@ class HttpClient {
         const errorData = await response.json();
 
         console.log('Error data:', errorData);
-        const error = new Error(errorData.message || ERROR_MESSAGES.GENERIC_ERROR);
+        const error = new Error(errorData.message || errorData.error || ERROR_MESSAGES.GENERIC_ERROR);
         throw error;
       } catch (error) {
         throw error;

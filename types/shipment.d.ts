@@ -111,4 +111,24 @@ export interface Shipment {
   invoiceDate: string;
   invoiceNumber: string;
   isScheduledConfirmed: boolean;
+}
+
+// ReportIssueDto for maintenance/report issue
+export interface ReportIssueDto {
+  /** Drone identifier */
+  droneId: string;
+  /** User who reported the issue */
+  reportedBy: string;
+  /** Optional description of the issue */
+  description?: string;
+  /** Type of issue */
+  issueType: 'HARDWARE' | 'SOFTWARE' | 'OTHER';
+  /** Severity of the issue */
+  issueSeverity: 'MINOR' | 'MAJOR' | 'CRITICAL';
+  /** Optional user comments */
+  userComments?: string;
+  /** Optional priority */
+  priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  /** Optional attachments (file URLs or IDs) */
+  attachments?: string[];
 } 

@@ -1,4 +1,4 @@
-import { AuthResponse, LoginFormData, LogoutFormData } from '@/utils/auth/types';
+import { AuthResponse, LoginFormData } from '@/utils/auth/types';
 import { ERROR_MESSAGES } from '../config';
 import { IAuthService } from '../interfaces/IAuthService';
 import { BaseService } from './BaseService';
@@ -89,6 +89,10 @@ class AuthService extends BaseService implements IAuthService {
       throw this.handleError(error);
     }
   }
+   
+   async getProfile(email: string){
+    return this.get(`profile?email=${email}`);
+   }
 }
 
 export const authService = AuthService.getInstance(); 

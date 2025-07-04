@@ -5,6 +5,29 @@ import { useRouter } from 'expo-router';
 import { useShipment } from '../../utils/ShipmentContext';
 import SuccessIcon from "@/assets/images/successIcon.svg"
 import Header from '@/components/Header';
+
+function Field({ label, value }: { label: string; value?: string | number | boolean }) {
+  if (value === undefined || value === null || value === '') return null;
+  return (
+    <View className="mb-2">
+      <Text className="text-gray-500 mb-1">{label}</Text>
+      <Text className="text-base">{String(value)}</Text>
+    </View>
+  );
+}
+
+// function Attachments({ attachments }: { attachments?: string[] }) {
+//   if (!attachments || attachments.length === 0) return null;
+//   return (
+//     <View className="mb-2">
+//       <Text className="text-gray-500 mb-1">Attachments:</Text>
+//       {attachments.map((att, idx) => (
+//         <Text key={idx} className="text-base underline text-blue-600">{att}</Text>
+//       ))}
+//     </View>
+//   );
+// }
+
 export default function MaintenanceDetail() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -18,12 +41,9 @@ export default function MaintenanceDetail() {
     );
   }
 
-  const isCompleted = maintenance.completed;
-
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
-     
       <Header insets={insets} text={"Maintenance Details"} />
       <ScrollView
         contentContainerStyle={{ paddingBottom: 40 + insets.bottom, paddingHorizontal: 16 }}
@@ -31,58 +51,50 @@ export default function MaintenanceDetail() {
       >
         <View className="mt-6 mb-4">
           <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-2xl ">Drone #{maintenance.droneId}</Text>
-            {isCompleted ? (
-              <View className="w-3 h-3 rounded-full bg-green-500" />
-            ) : (
-              <View className="w-3 h-3 rounded-full bg-orange-500" />
-            )}
+            <Text className="text-lg font-bold">Drone #{maintenance.droneId}</Text>
+            <View className={`w-3 h-3 rounded-full ${maintenance.isResolved ? 'bg-green-500' : 'bg-orange-500'}`} />
           </View>
-          {/* Scheduled Details */}
+          {/* Maintenance Details */}
           <View className="bg-white rounded-2xl border border-gray-100 p-4 mb-4 shadow-sm">
-            <Text className="text-lg mb-3">Scheduled Details</Text>
-            <Text className="text-gray-500 mb-1">Scheduled for:</Text>
-            <Text className="text-base mb-3">{new Date(maintenance.scheduledDate).toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric'
-            })}</Text>
-            <Text className="text-gray-500 mb-1">Reason:</Text>
-            <Text className="text-base mb-3">{maintenance.reason}</Text>
-            <Text className="text-gray-500 mb-1">Comments:</Text>
-            <Text className="text-base mb-2">{maintenance.comments}</Text>
+            <Text className="text-lg mb-3 font-bold">Issue Details</Text>
+            <Field label="Maintenance ID" value={maintenance._id} />
+            <Field label="Type" value={maintenance.maintenanceType} />
+            <Field label="Status" value={maintenance.status} />
+            <Field label="Reported By" value={maintenance.reportedBy} />
+            <Field label="Description" value={maintenance.description} />
+            <Field label="Priority" value={maintenance.priority} />
+            <Field label="Issue Type" value={maintenance.issueType} />
+            <Field label="Issue Severity" value={maintenance.issueSeverity} />
+            <Field label="User Comments" value={maintenance.userComments} />
+            <Field label="Resolved" value={maintenance.isResolved ? 'Yes' : 'No'} />
+            <Field label="Created At" value={new Date(maintenance.createdAt).toLocaleString()} />
+            <Field label="Updated At" value={new Date(maintenance.updatedAt).toLocaleString()} />
           </View>
-          {/* Completion Report */}
-          {isCompleted && (
+          {/* Actions Taken */}
+          {maintenance.actionsTaken && maintenance.actionsTaken.length > 0 && (
             <View className="bg-white rounded-2xl border border-gray-100 p-4 mb-4 shadow-sm">
-              <Text className="text-lg mb-3">Completion Report</Text>
-              <Text className="text-gray-500 mb-1">Completed on:</Text>
-              <Text className="text-base mb-2">{maintenance.completionDate ? new Date(maintenance.completionDate).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-              }) : '-'}</Text>
-              <Text className="text-gray-500 mb-1">Work Done:</Text>
-              <View className="mb-3">
-                {maintenance.workDone && maintenance.workDone.length > 0 ? (
-                  maintenance.workDone.map((item, idx) => (
-                    <Text key={idx} className="text-base mb-1">• {item}</Text>
-                  ))
-                ) : (
-                  <Text className="text-base">-</Text>
-                )}
-              </View>
-              <Text className="text-gray-500 mb-1">Technician Comments:</Text>
-              <Text className="text-base mb-2">{maintenance.technicianComments || '-'}</Text>
+              <Text className="text-lg mb-3">Actions Taken</Text>
+              {maintenance.actionsTaken.map((action, idx) => (
+                <Text key={idx} className="text-base mb-1">• {String(action)}</Text>
+              ))}
+            </View>
+          )}
+          {/* Maintenance Checklist */}
+          {maintenance.maintenanceChecklist && maintenance.maintenanceChecklist.length > 0 && (
+            <View className="bg-white rounded-2xl border border-gray-100 p-4 mb-4 shadow-sm">
+              <Text className="text-lg mb-3">Maintenance Checklist</Text>
+              {maintenance.maintenanceChecklist.map((item, idx) => (
+                <Text key={idx} className="text-base mb-1">• {String(item)}</Text>
+              ))}
             </View>
           )}
         </View>
         {/* Status at the bottom */}
         <View className="items-center mt-8 mb-8">
-          {isCompleted ? (
+          {maintenance.isResolved ? (
             <View className="items-center">
-              <SuccessIcon  width={45} height={45}/>
-              <Text className="text-green-600 text-xl mb-1 mt-4">Maintenance Completed</Text>
+              <SuccessIcon width={45} height={45} />
+              <Text className="text-green-600 text-xl mb-1 mt-4">Maintenance Resolved</Text>
               <Text className="text-gray-500 text-lg">All checks passed</Text>
             </View>
           ) : (

@@ -62,7 +62,7 @@ function useMenuAnimation(isVisible: boolean) {
 
 const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isVisible, onClose }) => {
   const insets = useSafeAreaInsets();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const router = useRouter();
   const { slideAnim, fadeAnim, renderMenu } = useMenuAnimation(isVisible);
 
@@ -123,7 +123,7 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isVisible, onClose }) => 
               <TouchableOpacity className="flex items-center p-4 border-b border-gray-200" onPress={() => handleNavigate('/(app)/profile')}>
                 <UserCircleIcon size={80} color="gray" /> 
                 <View className="ml-3">
-                  <Text className="text-xl text-center ">John Doe</Text>
+                  <Text className="text-xl text-center ">{user?.userName}</Text>
                 </View>
               </TouchableOpacity>
 

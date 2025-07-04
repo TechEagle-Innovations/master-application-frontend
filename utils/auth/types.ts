@@ -48,13 +48,14 @@ export interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   isLoading: boolean;
+  clearskyToken: string | null
 }
 
 export type AuthAction =
   | { type: 'LOGIN_SUCCESS'; payload: AuthResponse }
   | { type: 'REFRESH_TOKEN_SUCCESS'; payload: AuthResponse }
   | { type: 'LOGOUT' }
-  | { type: 'SET_AUTH_ERROR'; payload: string };
+  | { type: 'SET_AUTH_ERROR' };
 
 export interface LoginFormData {
   email: string;

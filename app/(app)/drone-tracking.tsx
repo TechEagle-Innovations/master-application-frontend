@@ -39,6 +39,11 @@ const DroneTracking = () => {
 
   // Timeout for loading state (10 seconds)
   useEffect(() => {
+    if(connectionStatus=='error'){
+     setTimeout(() => {
+        router.replace({ pathname: '/(app)/dashboard', params: { message: 'Please Connect Drone First' , type:connectionStatus} });
+      }, 200);
+    }
     if (connectionStatus === 'connected' && drone) {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       setTimedOut(false);
@@ -234,7 +239,7 @@ const DroneTracking = () => {
   return (
     <SafeAreaView className="flex-1 bg-white" style={{paddingBottom:insets.bottom}}>
       {/* Header */}
-      <Header insets={insets} text={drone.id}/>
+      <Header insets={insets} text={params.localFlightId as string}/>
       {/* Map */}
       <View className="w-full h-full">
         <MapView
@@ -267,7 +272,8 @@ const DroneTracking = () => {
               coordinates={route}
               strokeColor="#2962ff"
               strokeWidth={3}
-              lineDashPattern={[8, 8]}
+              // lineDashPhase={[10, 10]}
+              // lineDashPattern={[8, 8]}
             />
           )}
           {/* Origin Marker (Takeoff) */}
@@ -291,7 +297,7 @@ const DroneTracking = () => {
               }}>
                 <Image
                   source={DroneImage}
-                  style={{ width: 60, height: 60, resizeMode: 'contain' }}
+                  style={{ width: 35, height: 35, resizeMode: 'contain' }}
                   accessibilityLabel="Drone"
                 />
               </Animated.View>
@@ -335,14 +341,14 @@ const DroneTracking = () => {
           )}
         </View> */}
         <View className="flex-row items-center justify-between mb-2">
-          <Text className="text-lg font-semibold text-gray-900 mr-2">{drone.id}</Text>
+          <Text className="text-base text-gray-400 mr-2">ALT : <Text className='text-xl font-semibold text-gray-900'>{drone.alt} m</Text></Text>
           <View className="flex-row items-center justify-between">
           <Ionicons name="battery-full" size={20} color="#27ae60" />
           <Text className="ml-2 text-green-600 font-medium text-base">{drone.battery ?? '--'}%</Text>
           </View>
         </View>
-        <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-base text-gray-500 w-28 text-center">Central Hub</Text>
+        <View className="flex-row gap-2 items-center justify-between mb-4">
+          <Text className="text-base text-gray-500 w-20">{"Central Hub".split(' ').slice(0, 7).join(' ')}{"Central Hub".split(' ').length > 7 ? '...' : ''}</Text>
           <View className="flex-1 flex-row items-center justify-center">
             <View className="w-3 h-3 rounded-full bg-blue-500" />
             <View className="h-0.5 w-10 bg-gray-200" />
@@ -351,7 +357,7 @@ const DroneTracking = () => {
             <View className="h-0.5 w-10 bg-gray-200" />
             <View className="w-3 h-3 rounded-full bg-green-500" />
           </View>
-          <Text className="text-base text-gray-500 w-28 text-center">Retail Store C</Text>
+          <Text className="text-base text-gray-500 w-20 text-right">{"Retail Store C".split(' ').slice(0, 7).join(' ')}{"Retail Store C".split(' ').length > 7 ? '...' : ''}</Text>
         </View>
         <View className="flex-row justify-between mt-2">
           <View className="items-center flex-1">

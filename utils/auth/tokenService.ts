@@ -1,5 +1,4 @@
-import { API_CONFIG } from '@/utils/api/config';
-import { AuthResponse, User } from '@/utils/auth/types';
+import { AuthResponse } from '@/utils/auth/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ITokenProvider } from './ITokenProvider';
 

@@ -1,5 +1,13 @@
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useReducer,
+  useState,
+  useCallback,
+} from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthAction, AuthResponse, AuthState } from '@/utils/auth/types';
-import React, { createContext, useContext, useEffect, useReducer, useState, useCallback } from 'react';
 import { tokenService } from './tokenService';
 
 const initialState: AuthState = {
@@ -8,6 +16,7 @@ const initialState: AuthState = {
   accessToken: null,
   refreshToken: null,
   isLoading: true,
+  clearskyToken: null,
 };
 
 function authReducer(state: AuthState, action: AuthAction): AuthState {
@@ -20,12 +29,9 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         accessToken: action.payload.access_token,
         refreshToken: action.payload.refresh_token,
         isLoading: false,
+        clearskyToken: state.clearskyToken,
       };
     case 'LOGOUT':
-      return {
-        ...initialState,
-        isLoading: false,
-      };
     case 'SET_AUTH_ERROR':
       return {
         ...initialState,
@@ -40,6 +46,7 @@ interface AuthContextType extends AuthState {
   login: (response: AuthResponse) => Promise<void>;
   logout: () => Promise<void>;
   refreshAuth: () => Promise<void>;
+  setClearskToken: (token: string | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -47,29 +54,76 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, initialState);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [clearskyToken, setClearskTokenState] = useState<string | null>(null);
+
+  const login = useCallback(async (response: AuthResponse) => {
+    try {
+      await tokenService.saveTokens(response);
+      dispatch({ type: 'LOGIN_SUCCESS', payload: response });
+    } catch (error) {
+      console.error('Login failed:', error);
+      dispatch({ type: 'SET_AUTH_ERROR' });
+    }
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      const success = await tokenService.logout();
+      if (!success) {
+        console.warn('Logout failed or partially failed. Tokens may not be cleared.');
+      }
+    } catch (error) {
+      console.error('Logout exception:', error);
+    } finally {
+      dispatch({ type: 'LOGOUT' });
+    }
+  }, []);
+
+  const refreshAuth = useCallback(async () => {
+    try {
+      const response = await tokenService.refreshTokens();
+      await tokenService.saveTokens(response);
+      dispatch({ type: 'REFRESH_TOKEN_SUCCESS', payload: response });
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      await logout();
+    }
+  }, [logout]);
 
   const checkAuth = useCallback(async () => {
     try {
       const { access_token, refresh_token } = await tokenService.getTokens();
-      
+
       if (!access_token || !refresh_token) {
         dispatch({ type: 'LOGOUT' });
-        setIsInitialized(true);
         return;
       }
 
       if (tokenService.isTokenExpired(access_token)) {
         await refreshAuth();
       } else {
-        // Validate and decode the access token to get user info
-        const payload = JSON.parse(atob(access_token.split('.')[1]));
+        let user = null;
+
+        try {
+          const payload = JSON.parse(atob(access_token.split('.')[1]));
+          user = payload.user;
+        } catch (e) {
+          console.warn('Failed to parse token payload:', e);
+        }
+
+        if (!user) {
+          const userStr = await AsyncStorage.getItem('auth_user');
+          user = userStr ? JSON.parse(userStr) : null;
+        }
+
+        if (!user) {
+          dispatch({ type: 'LOGOUT' });
+          return;
+        }
+
         dispatch({
           type: 'LOGIN_SUCCESS',
-          payload: {
-            access_token,
-            refresh_token,
-            user: payload.user,
-          },
+          payload: { access_token, refresh_token, user },
         });
       }
     } catch (error) {
@@ -78,45 +132,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsInitialized(true);
     }
+  }, [refreshAuth, logout]);
+
+  const setClearskToken = useCallback((token: string | null) => {
+    setClearskTokenState(token);
   }, []);
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
-  const login = useCallback(async (response: AuthResponse) => {
-    await tokenService.saveTokens({
-      access_token: response.access_token,
-      refresh_token: response.refresh_token,
-    });
-    dispatch({ 
-      type: 'LOGIN_SUCCESS', 
-      payload: response
-    });
-  }, []);
-
-  const logout = useCallback(async () => {
-    const success = await tokenService.logout();
-    if (!success) {
-      // Optionally show a toast or log
-      console.warn('Logout failed or partially failed. Tokens cleared.');
-    }
-    dispatch({ type: 'LOGOUT' });
-  }, []);
-
-  const refreshAuth = useCallback(async () => {
-    try {
-      const response = await tokenService.refreshTokens();
-      dispatch({ type: 'REFRESH_TOKEN_SUCCESS', payload: response });
-    } catch (error) {
-      console.error('Token refresh failed:', error);
-      await logout();
-    }
-  }, [logout]);
-
-  if (!isInitialized) {
-    return null;
-  }
+  if (!isInitialized) return null;
 
   return (
     <AuthContext.Provider
@@ -125,6 +151,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         logout,
         refreshAuth,
+        clearskyToken,
+        setClearskToken,
       }}
     >
       {children}
@@ -132,10 +160,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-} 
+}

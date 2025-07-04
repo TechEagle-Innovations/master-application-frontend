@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import type { Shipment } from '../types/shipment';
+import type { Shipment, ReportIssueDto } from '../types/shipment';
 
 
 const shipmentData: Shipment[] = [
@@ -232,46 +232,97 @@ const shipmentData: Shipment[] = [
 
 // New: Maintenance data and type
 export interface Maintenance {
-    id: string;
+    _id: string;
     droneId: string;
-    droneName: string;
-    scheduledDate: string;
-    reason: string;
-    comments: string;
-    completed: boolean;
-    completionDate?: string;
-    workDone?: string[];
-    technicianComments?: string;
+    maintenanceType: string;
+    status: string;
+    reportedBy: string;
+    description: string;
+    priority: string;
+    issueType: string;
+    issueSeverity: string;
+    userComments: string;
+    isResolved: boolean;
+    createdAt: string;
+    updatedAt: string;
+    actionsTaken: any[];
+    maintenanceChecklist: any[];
+    __v: number;
 }
 
 const maintenanceData: Maintenance[] = [
     {
-        id: 'MTN-2024-0127',
-        droneId: 'DRN-2024-0127',
-        droneName: 'Vertiplane X3',
-        scheduledDate: '2024-01-27',
-        reason: 'Routine Maintenance Check',
-        comments: 'Regular quarterly inspection and calibration',
-        completed: true,
-        completionDate: '2024-01-27',
-        workDone: [
-            'Battery replacement',
-            'Propeller alignment',
-            'Firmware update',
-            'Sensor calibration',
-        ],
-        technicianComments: 'All systems functioning normally after maintenance. Next scheduled check in 3 months.'
+        _id: "68636d6079692d457ddf47ad",
+        droneId: "T007VEE0003VERPL1003012024",
+        maintenanceType: "ISSUE_REPORTED",
+        status: "PENDING",
+        reportedBy: "68480d554aa46b57ade992d9",
+        description: "Test Description ",
+        priority: "MEDIUM",
+        issueType: "HARDWARE",
+        issueSeverity: "MINOR",
+        userComments: "Test committee ",
+        isResolved: false,
+        createdAt: "2025-07-01T05:08:48.177Z",
+        updatedAt: "2025-07-01T05:08:48.177Z",
+        actionsTaken: [],
+        maintenanceChecklist: [],
+        __v: 0
     },
     {
-        id: 'MTN-2024-0128',
-        droneId: 'DRN-2024-0128',
-        droneName: 'Verticopter X5',
-        scheduledDate: '2024-02-15',
-        reason: 'Propeller Replacement',
-        comments: 'Propeller damage detected during pre-flight check',
-        completed: false,
+        _id: "68636ec579692d457ddf47af",
+        droneId: "T007VEE0003VERPL1003012024",
+        maintenanceType: "ISSUE_REPORTED",
+        status: "PENDING",
+        reportedBy: "68480d554aa46b57ade992d9",
+        description: "Testing description ",
+        priority: "CRITICAL",
+        issueType: "SOFTWARE",
+        issueSeverity: "CRITICAL",
+        userComments: "Testimonials ",
+        isResolved: false,
+        createdAt: "2025-07-01T05:14:45.794Z",
+        updatedAt: "2025-07-01T05:14:45.794Z",
+        actionsTaken: [],
+        maintenanceChecklist: [],
+        __v: 0
     },
-    // Add more records as needed
+    {
+        _id: "68636f4e79692d457ddf47b1",
+        droneId: "T007VEE0003VERPL1003012024",
+        maintenanceType: "ISSUE_REPORTED",
+        status: "PENDING",
+        reportedBy: "68480d554aa46b57ade992d9",
+        description: "Test Description ",
+        priority: "CRITICAL",
+        issueType: "OTHER",
+        issueSeverity: "MAJOR",
+        userComments: "testimonials ",
+        isResolved: false,
+        createdAt: "2025-07-01T05:17:02.985Z",
+        updatedAt: "2025-07-01T05:17:02.985Z",
+        actionsTaken: [],
+        maintenanceChecklist: [],
+        __v: 0
+    },
+    {
+        _id: "68636fac79692d457ddf47b3",
+        droneId: "T007VEE0003VERPL1003012024",
+        maintenanceType: "ISSUE_REPORTED",
+        status: "PENDING",
+        reportedBy: "68480d554aa46b57ade992d9",
+        description: "Testimonials ",
+        priority: "CRITICAL",
+        issueType: "SOFTWARE",
+        issueSeverity: "MAJOR",
+        userComments: "Testimonials ",
+        isResolved: false,
+        createdAt: "2025-07-01T05:18:36.120Z",
+        updatedAt: "2025-07-01T05:18:36.121Z",
+        actionsTaken: [],
+        maintenanceChecklist: [],
+        __v: 0
+    }
 ];
 
 interface ShipmentContextProps {
@@ -281,18 +332,20 @@ interface ShipmentContextProps {
     maintenanceRecords: Maintenance[];
     maintenance: Maintenance | null;
     setMaintenance: (maintenance: Maintenance | null) => void;
+    setShipments: (shipments: Shipment[]) => void;
+    setMaintenanceRecords: (records: Maintenance[]) => void;
 }
 
 const ShipmentContext = createContext<ShipmentContextProps | undefined>(undefined);
 
 export const ShipmentProvider = ({ children }: { children: ReactNode }) => {
     const [shipment, setShipment] = useState<Shipment | null>(null);
-    const [shipments] = useState<Shipment[]>(shipmentData);
+    const [shipments, setShipments] = useState<Shipment[]>(shipmentData);
     const [maintenance, setMaintenance] = useState<Maintenance | null>(null);
-    const [maintenanceRecords] = useState<Maintenance[]>(maintenanceData);
+    const [maintenanceRecords, setMaintenanceRecords] = useState<Maintenance[]>(maintenanceData);
 
     return (
-        <ShipmentContext.Provider value={{ shipments, shipment, setShipment, maintenanceRecords, maintenance, setMaintenance }}>
+        <ShipmentContext.Provider value={{ shipments, shipment, setShipment, maintenanceRecords, maintenance, setMaintenance, setShipments, setMaintenanceRecords }}>
             {children}
         </ShipmentContext.Provider>
     );

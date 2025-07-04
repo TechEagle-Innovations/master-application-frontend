@@ -12,8 +12,8 @@ interface ParcelValidationModalProps {
   error: string | null;
   photo: string | null;
   onTakePhoto: () => void;
-  selectedOption: string;
-  setSelectedOption: (option: string) => void;
+  selectedOption: string | null;
+  setSelectedOption: (option: string | null ) => void;
 }
 
 const ParcelValidationModal: React.FC<ParcelValidationModalProps> = ({
