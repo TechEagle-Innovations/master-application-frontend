@@ -12,8 +12,9 @@ import HistoryActive from "@/assets/images/history-active.svg";
 import InFlightDroneCard from '../../components/InFlightDroneCard';
 import { droneService } from '../../utils/api/services/DroneService';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { FlightHistoryItem, flightService } from '@/utils/api/services/FlightService';
+import { flightService } from '@/utils/api/services/FlightService';
 import Notification, { NotificationType } from '@/components/Notification';
+import Loader from '@/components/Loader';
 
 // Layout interface remains the same
 interface Layout {
@@ -464,7 +465,7 @@ export default function Dashboard() {
   // Render loading state
   const renderLoading = () => (
     <View className="flex-1 items-center justify-center">
-      <ActivityIndicator size="large" color="#ea580c" />
+      <Loader fullscreen />
       <Text className="mt-4 text-gray-600">
         {activeTab === 'available'
           ? 'Loading available drones...'
@@ -573,8 +574,6 @@ export default function Dashboard() {
   // Keep your existing JSX return statement
   return (
     <View className="flex-1 bg-white">
-      <StatusBar barStyle="dark-content" backgroundColor="white" />
-
       {/* Notification Snackbar */}
       {notification && (
         <Notification
@@ -586,19 +585,15 @@ export default function Dashboard() {
           duration={4000}
         />
       )}
-
       <Header
         headerHeight={layout.headerHeight}
         paddingTop={insets.top}
         onMenuPress={handleMenuPress}
       />
-
       <View className="px-4 py-2">
         <Text className="text-gray-600 text-lg">Select a drone to view details</Text>
       </View>
-
       <Tabs activeTab={activeTab} onTabPress={handleTabPress} />
-
       <View className="flex-row items-center bg-gray-100 rounded-lg mx-4 mt-4 px-3 py-2">
         <MagnifyingGlassIcon size={20} color="gray" />
         <TextInput
@@ -609,9 +604,7 @@ export default function Dashboard() {
           onChangeText={handleSearchChange}
         />
       </View>
-
       {renderContent()}
-
       <BottomNav
         activeNav={activeNav}
         onNavPress={handleNavPress}
@@ -624,7 +617,6 @@ export default function Dashboard() {
           paddingBottom: insets.bottom,
         }}
       />
-
       <HamburgerMenu
         isVisible={isMenuVisible}
         onClose={handleMenuClose}

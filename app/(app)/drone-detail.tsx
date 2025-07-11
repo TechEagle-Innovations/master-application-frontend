@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DroneImage from '@/assets/images/droneImage.svg';
@@ -7,6 +7,7 @@ import { CalendarDays, PlaneTakeoff, Clock } from 'lucide-react-native';
 import { flightService, FlightHistoryItem } from '@/utils/api/services/FlightService';
 import Header from '@/components/Header';
 import { useAuth } from '@/utils/auth/AuthContext';
+import { CLEARSKY_URL } from '@/utils/api/config';
 
 interface Drone {
     id: string;
@@ -77,7 +78,7 @@ function DroneFooterActions({ assigned, bottomInset, droneId }: { assigned: bool
                 droneId,
                 password: password.trim(),
             })
-            const responseclr = await fetch('https://training.clearsky.techeagle.org/admin/login', {
+            const responseclr = await fetch(`${CLEARSKY_URL}/admin/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

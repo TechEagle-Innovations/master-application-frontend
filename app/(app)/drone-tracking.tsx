@@ -10,9 +10,9 @@ import DroneImage from '@/assets/images/drone_img.png';
 import { useParcelPhoto } from '../../hooks/useParcelPhoto';
 import ParcelValidationModal from '@/components/ParcelValidationModal';
 import ValidationSuccessModal from '@/components/ValidationSuccessModal';
-import { isAtDelivery } from '@/utils/droneUtils';
+import { isAtDelivery, haversineDistance } from '@/utils/droneUtils';
 
- // Update to your backend URL if needed
+// Update to your backend URL if needed
 
 const DroneTracking = () => {
   // All hooks and state at the top
@@ -37,11 +37,15 @@ const DroneTracking = () => {
   const [hasValidated, setHasValidated] = useState(false);
   const { photo, loading: photoLoading, error: photoError, takePhoto, reset: resetPhoto } = useParcelPhoto();
 
+  // Progress bar width state and ref (for bottom info card)
+  const [barWidth, setBarWidth] = useState<number>(300); // fallback 300px
+  const barRef = useRef<View>(null);
+
   // Timeout for loading state (10 seconds)
   useEffect(() => {
-    if(connectionStatus=='error'){
-     setTimeout(() => {
-        router.replace({ pathname: '/(app)/dashboard', params: { message: 'Please Connect Drone First' , type:connectionStatus} });
+    if (connectionStatus == 'error') {
+      setTimeout(() => {
+        router.replace({ pathname: '/(app)/dashboard', params: { message: 'Please Connect Drone First', type: connectionStatus } });
       }, 200);
     }
     if (connectionStatus === 'connected' && drone) {
@@ -97,7 +101,7 @@ const DroneTracking = () => {
   // Calculate heading (direction) for drone marker
   let droneHeading = typeof drone?.heading === 'number' ? drone.heading
     : (typeof drone?.yaw === 'number' ? drone.yaw
-    : undefined);
+      : undefined);
   // Fallback: calculate heading from last two route points if not present
   if (droneHeading === undefined && route.length > 1) {
     const prev = route[route.length - 2];
@@ -237,9 +241,9 @@ const DroneTracking = () => {
   const deliveryOptions = ['Delivered', 'Not Delivered'];
 
   return (
-    <SafeAreaView className="flex-1 bg-white" style={{paddingBottom:insets.bottom}}>
+    <SafeAreaView className="flex-1 bg-white" style={{ paddingBottom: insets.bottom }}>
       {/* Header */}
-      <Header insets={insets} text={params.localFlightId as string}/>
+      <Header insets={insets} text={params.localFlightId as string} />
       {/* Map */}
       <View className="w-full h-full">
         <MapView
@@ -272,8 +276,8 @@ const DroneTracking = () => {
               coordinates={route}
               strokeColor="#2962ff"
               strokeWidth={3}
-              // lineDashPhase={[10, 10]}
-              // lineDashPattern={[8, 8]}
+            // lineDashPhase={[10, 10]}
+            // lineDashPattern={[8, 8]}
             />
           )}
           {/* Origin Marker (Takeoff) */}
@@ -297,7 +301,7 @@ const DroneTracking = () => {
               }}>
                 <Image
                   source={DroneImage}
-                  style={{ width: 35, height: 35, resizeMode: 'contain' }}
+                  style={{ width: 63, height: 63, resizeMode: 'contain' }}
                   accessibilityLabel="Drone"
                 />
               </Animated.View>
@@ -328,57 +332,103 @@ const DroneTracking = () => {
           </TouchableOpacity>
         </View>
       </View>
-      {/* Info Card */}
-      <View className="absolute bottom-0 left-0 w-full bg-white rounded-t-3xl px-6 pt-5 pb-8 shadow-lg border-t border-gray-100">
-        {/* Debug info for route */}
-        {/* <View className="mb-2">
-          <Text className="text-xs text-gray-400">Route length: {route.length}</Text>
-          {route.length > 0 && (
-            <Text className="text-xs text-gray-400">First: {JSON.stringify(route[0])}</Text>
-          )}
-          {route.length > 1 && (
-            <Text className="text-xs text-gray-400">Last: {JSON.stringify(route[route.length-1])}</Text>
-          )}
-        </View> */}
-        <View className="flex-row items-center justify-between mb-2">
-          <Text className="text-base text-gray-400 mr-2">ALT : <Text className='text-xl font-semibold text-gray-900'>{drone.alt} m</Text></Text>
-          <View className="flex-row items-center justify-between">
-          <Ionicons name="battery-full" size={20} color="#27ae60" />
-          <Text className="ml-2 text-green-600 font-medium text-base">{drone.battery ?? '--'}%</Text>
+      {/* Info Card - Redesigned for live progress */}
+      <View className="absolute bottom-0 left-0 w-full">
+        <View className="bg-white rounded-2xl p-4" style={{
+          shadowColor: '#000',
+          shadowOpacity: 0.08,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 2 },
+        }}>
+          <View className='p-5 mb-5 rounded-2xl border border-gray-200 bg-white'
+            style={{
+              elevation: 2,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.9,
+              shadowRadius: 2,
+            }}>
+            {/* Top Row: Drone ID and Battery */}
+            <View className="flex-row justify-between items-center mb-2">
+              <Text className="text-xl font-bold text-gray-800">{drone.id || params.localFlightId || '---'}</Text>
+              <View className="flex-row items-center">
+                <Ionicons name="battery-full" size={22} color="#27ae60" />
+                <Text className="ml-1 text-green-600 font-semibold text-base">{drone.battery ?? '--'}%</Text>
+              </View>
+            </View>
+
+            {/* Progress Bar with Endpoints, Drone Icon, and ETA */}
+            <View className="flex-row items-center mb-1 relative h-9">
+              {/* Origin Dot */}
+              <View className="w-2.5 h-2.5 rounded-full bg-blue-600 mr-1 z-10" />
+              {/* Progress Bar */}
+              <View
+                className="flex-1 h-0.5 bg-gray-800 relative justify-center"
+                ref={barRef}
+                onLayout={e => setBarWidth(e.nativeEvent.layout.width)}
+              >
+                {/* Live Drone Icon on Progress Bar */}
+                {(() => {
+                  let progress = 0;
+                  if (route.length > 1 && drone.lat && drone.long) {
+                    const origin = route[0];
+                    const dest = route[route.length - 1];
+                    const totalDist = haversineDistance(origin.latitude, origin.longitude, dest.latitude, dest.longitude);
+                    const currDist = haversineDistance(origin.latitude, origin.longitude, drone.lat, drone.long);
+                    progress = totalDist > 0 ? currDist / totalDist : 0;
+                  }
+                  progress = Math.max(0, Math.min(1, progress));
+                  const iconWidth = 32;
+                  const leftPx = progress * (barWidth - iconWidth);
+                  return barWidth > 0 ? (
+                    <View
+                      style={{
+                        position: 'absolute',
+                        left: leftPx,
+                        top: -15,
+                        width: iconWidth,
+                      }}
+                      className="z-20"
+                    >
+                      <Image source={DroneImage} className="w-9 h-9" style={{ resizeMode: 'contain', transform: [{ rotate: '90deg' }] }} accessibilityLabel="Drone" />
+                    </View>
+                  ) : null;
+                })()}
+              </View>
+              {/* Destination Dot */}
+              <View className="w-2.5 h-2.5 rounded-full bg-green-600 ml-1 z-10" />
+            </View>
+
+            {/* Origin, ETA, Destination */}
+            <View className="flex-row items-center">
+              <Text className="flex-1 text-gray-600 text-sm">{route[0]?.name || 'Central Hub'}</Text>
+              <Text className="font-bold text-base text-gray-800 mx-2">ETA: {drone.eta ?? '--'} min</Text>
+              <Text className="flex-1 text-gray-600 text-sm text-right">{route[route.length - 1]?.name || 'Retail Store'}</Text>
+            </View>
+          </View>
+
+          {/* Altitude, Speed, Distance */}
+          <View className="flex-row justify-between items-end mb-5">
+            <View className="items-center flex-1">
+              <Text className="text-gray-500 text-base">Altitude</Text>
+              <Text className="font-bold text-xl text-gray-800 mt-0.5">
+                {drone.alt ?? '--'}<Text className="font-normal text-base text-gray-500">m</Text>
+              </Text>
+            </View>
+            <View className="items-center flex-1">
+              <Text className="text-gray-500 text-base">Speed</Text>
+              <Text className="font-bold text-xl text-gray-800 mt-0.5">
+                {drone.speed ?? '--'}<Text className="font-normal text-base text-gray-500"> km/h</Text>
+              </Text>
+            </View>
+            <View className="items-center flex-1">
+              <Text className="text-gray-500 text-base">Distance</Text>
+              <Text className="font-bold text-xl text-gray-800 mt-0.5">
+                {drone.distance ?? '--'}<Text className="font-normal text-base text-gray-500"> km</Text>
+              </Text>
+            </View>
           </View>
         </View>
-        <View className="flex-row gap-2 items-center justify-between mb-4">
-          <Text className="text-base text-gray-500 w-20">{"Central Hub".split(' ').slice(0, 7).join(' ')}{"Central Hub".split(' ').length > 7 ? '...' : ''}</Text>
-          <View className="flex-1 flex-row items-center justify-center">
-            <View className="w-3 h-3 rounded-full bg-blue-500" />
-            <View className="h-0.5 w-10 bg-gray-200" />
-            {/* <Ionicons name="airplane" size={20} color="#222" style={{ marginHorizontal: 2 }} /> */}
-            <Image source={DroneImage} style={{ width: 50, height: 50, marginHorizontal: 2, resizeMode: 'contain' }} accessibilityLabel="Drone" />
-            <View className="h-0.5 w-10 bg-gray-200" />
-            <View className="w-3 h-3 rounded-full bg-green-500" />
-          </View>
-          <Text className="text-base text-gray-500 w-20 text-right">{"Retail Store C".split(' ').slice(0, 7).join(' ')}{"Retail Store C".split(' ').length > 7 ? '...' : ''}</Text>
-        </View>
-        <View className="flex-row justify-between mt-2">
-          <View className="items-center flex-1">
-            <Text className="text-base text-gray-400 mb-1">ETA</Text>
-            <Text className="text-xl font-semibold text-gray-900">{drone.eta ?? '--'} mins</Text>
-          </View>
-          <View className="items-center flex-1">
-            <Text className="text-base text-gray-400 mb-1">Speed</Text>
-            <Text className="text-xl font-semibold text-gray-900">{drone.speed ?? '--'} km/h</Text>
-          </View>
-          <View className="items-center flex-1">
-            <Text className="text-base text-gray-400 mb-1">Distance</Text>
-            <Text className="text-xl font-semibold text-gray-900">{drone.distance ?? '--'} km</Text>
-          </View>
-        </View>
-        {/* Route empty warning */}
-        {route.length === 0 && (
-          <View className="mt-4 p-3 bg-yellow-100 rounded-lg">
-            <Text className="text-yellow-800 text-center">No route available for this flight.</Text>
-          </View>
-        )}
       </View>
       {/* Parcel Validation Modal */}
       <ParcelValidationModal
