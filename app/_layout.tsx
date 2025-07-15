@@ -4,12 +4,18 @@ import { Stack, useRootNavigationState, useRouter, useSegments } from "expo-rout
 import { useEffect, useCallback } from "react";
 import { View } from "react-native";
 import { useAuth } from '@/utils/auth/AuthContext';
+import { NotificationProvider } from '@/utils/NotificationProvider';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
+
+
 
 function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
   const navigationState = useRootNavigationState();
   const { isAuthenticated, isLoading } = useAuth();
+  const {accessToken} = useAuth();
+  usePushNotifications(accessToken);
 
   const handleNavigation = useCallback(() => {
     if (!navigationState?.key || isLoading) return;
@@ -54,9 +60,11 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
+      <NotificationProvider>
       <ShipmentProvider>
         <RootLayoutNav />
       </ShipmentProvider>
+      </NotificationProvider>
     </AuthProvider>
   );
 }
