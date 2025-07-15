@@ -33,7 +33,8 @@ export function useDroneTracking(flightId: string) {
   const { clearskyToken } = useAuth()
  
   useEffect(() => {
-      console.log("clearskyToken", clearskyToken, "flightId", flightId);
+    
+      // console.log("clearskyToken", clearskyToken, "flightId", flightId);
     if (!clearskyToken) {
      setConnectionStatus('error');
     }
