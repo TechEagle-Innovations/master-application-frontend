@@ -21,7 +21,7 @@ export class NotificationService extends BaseService{
   }
 
   async removeToken(token: string) {
-    return this.delete('remove-token', { pushToken: token });
+    return this.post('remove-token', { pushToken: token });
   }
 } 
 
