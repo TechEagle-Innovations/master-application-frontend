@@ -12,7 +12,7 @@ export function usePushNotifications(jwt: string | null) {
 
   useEffect(() => {
     let pushToken: string | null = null;
-
+    console.log("jwt", jwt);
     async function registerForPushNotificationsAsync() {
       if (!Device.isDevice) {
         Alert.alert('Push notifications are only supported on physical devices.');
@@ -54,4 +54,4 @@ export function usePushNotifications(jwt: string | null) {
       responseListener.current?.remove();
     };
   }, [jwt, setLastNotification]);
-} Enter
+} 

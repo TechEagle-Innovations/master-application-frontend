@@ -13,9 +13,12 @@ function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
   const navigationState = useRootNavigationState();
-  const { isAuthenticated, isLoading } = useAuth();
-  const {accessToken} = useAuth();
-  usePushNotifications(accessToken);
+  const { isAuthenticated, isLoading, accessToken } = useAuth();
+
+  // Only call usePushNotifications after login and when accessToken is available
+  // This ensures notification permission is only requested after authentication
+  // and not on every render or before login
+  usePushNotifications(isAuthenticated ? accessToken : null);
 
   const handleNavigation = useCallback(() => {
     if (!navigationState?.key || isLoading) return;
