@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import FullBatteryIcon from '@/assets/images/full-battery.svg';
-import LowBatteryIcon from '@/assets/images/low-battery.svg';
-import LowBatteryIcon2 from '@/assets/images/low-battery2.svg';
 
 import Header from '@/components/Header';
 import { Battery, batteryService } from '@/utils/api/services/BatteryService';
+import BatteryCard from '@/components/BatteryCard';
+import { useRouter } from 'expo-router';
 
 const TABS = [
     { label: 'Available', value: 'available' },
@@ -17,28 +16,29 @@ const FILTERS = [
     { label: 'All', value: 'all' },
     { label: 'Charged', value: 'charged' },
     { label: 'Discharged', value: 'discharged' },
+    { label: 'Charging', value: 'charging' },
 ];
 
-function getBatteryStatus(percent: number) {
-    if (percent >= 60) return 'charged';
-    if (percent <= 20) return 'discharged';
-    return 'medium';
-}
-
-function getBatteryIcon(percent: number) {
-    if (percent >= 60) return <FullBatteryIcon width={28} height={28} />;
-    if (percent <= 20) return <LowBatteryIcon width={28} height={28} />;
-    return <LowBatteryIcon2 width={28} height={28} />;
-}
+// Use a flexible type for batteries to support new backend fields
+export type BatteryAPI = {
+  _id: string;
+  battery_id?: string;
+  charged_status?: string;
+  last_used?: string;
+  serialNumber?: string;
+  chargingPercentage?: number;
+  // ...other fields
+};
 
 export default function BatteryScreen() {
     const insets = useSafeAreaInsets();
+    const router = useRouter();
 
-    const [batteries, setBatteries] = useState<Battery[]>([]);
+    const [batteries, setBatteries] = useState<BatteryAPI[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'available' | 'discarded'>('available');
-    const [activeFilter, setActiveFilter] = useState<'all' | 'charged' | 'discharged'>('all');
+    const [activeFilter, setActiveFilter] = useState<'all' | 'charged' | 'discharged' | 'charging'>('all');
 
     const fetchBatteries = async () => {
         try {
@@ -46,7 +46,7 @@ export default function BatteryScreen() {
             setError(null);
             const res = await batteryService.getBatteries();
             console.log(res);
-            setBatteries(res as Battery[]);
+            setBatteries(res as BatteryAPI[]);
         } catch (err) {
             console.error('Failed to fetch batteries:', err);
             setError('Failed to load batteries. Please try again later.');
@@ -62,8 +62,9 @@ export default function BatteryScreen() {
     // Filter logic
     const filteredBatteries = batteries?.filter(b => {
         if (activeTab === 'discarded') return false; // For now
-        if (activeFilter === 'charged') return b.chargingPercentage >= 60;
-        if (activeFilter === 'discharged') return b.chargingPercentage <= 20;
+        if (activeFilter === 'charged') return b.charged_status === 'charged';
+        if (activeFilter === 'discharged') return b.charged_status === 'discharged';
+        if (activeFilter === 'charging') return b.charged_status === 'charging';
         return true; // "all"
     }) || [];
 
@@ -130,26 +131,24 @@ export default function BatteryScreen() {
                 )}
 
                 {!loading && !error && filteredBatteries.map(battery => {
-                    const status = getBatteryStatus(battery.chargingPercentage);
-                    const isDischarged = status === 'discharged';
                     return (
-                        <View
+                        <BatteryCard
                             key={battery._id}
-                            className="bg-white rounded-2xl flex-row items-center justify-between px-6 py-6 mb-3 shadow-sm"
-                        >
-                            <View className="flex-row items-center">
-                                {getBatteryIcon(battery.chargingPercentage)}
-                                <Text className="ml-3 text-lg" style={{ color: isDischarged ? '#ef4444' : '#222' }}>
-                                    {battery.serialNumber}
-                                </Text>
-                            </View>
-                            <Text className="ml-1 text-lg font-semibold" style={{ color: isDischarged ? '#ef4444' : '#22c55e' }}>
-                                {battery.chargingPercentage}%
-                            </Text>
-                        </View>
+                            battery={battery}
+                            onPress={() => router.push({ pathname: '/(app)/battery-info', params: { id: battery._id } })}
+                        />
                     );
                 })}
             </ScrollView>
+            {/* Floating Add Battery Button */}
+            <TouchableOpacity
+                className="absolute bottom-8 right-8 bg-orange-500 rounded-full w-16 h-16 items-center justify-center shadow-lg"
+                style={{ elevation: 6 }}
+                onPress={() => router.push('/(app)/add-battery')}
+                activeOpacity={0.85}
+            >
+                <Text className="text-white text-3xl">+</Text>
+            </TouchableOpacity>
         </View>
     );
 }

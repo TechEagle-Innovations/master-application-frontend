@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, ActivityIndicator } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, Router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DroneImage from '@/assets/images/droneImage.svg';
 import { CalendarDays, PlaneTakeoff, Clock } from 'lucide-react-native';
@@ -26,7 +26,7 @@ const mockDrone: Drone = {
     lastMaintenance: 'Oct 15, 2023',
 };
 
-function DroneStats({ totalFlights, lastMaintenance }: { totalFlights: number; lastMaintenance: string }) {
+function DroneStats({ totalFlights, lastMaintenance, handleMaintainanceClick }: { totalFlights: number; lastMaintenance: string, handleMaintainanceClick:()=>{} }) {
     return (
         <View className="flex-row justify-around mb-6 px-2">
             <View className="items-center bg-gray-50 rounded-xl p-4 flex-1 mx-2 shadow-sm">
@@ -36,19 +36,21 @@ function DroneStats({ totalFlights, lastMaintenance }: { totalFlights: number; l
                 </View>
                 <Text className="text-gray-500 mt-1">Total Flights</Text>
             </View>
-            <View className="items-center bg-gray-50 rounded-xl p-4 flex-1 mx-2 shadow-sm">
+            <TouchableOpacity className="items-center bg-gray-50 rounded-xl p-4 flex-1 mx-2 shadow-sm"
+             onPress={()=>handleMaintainanceClick()}
+            >
                 <View className='flex-row gap-4 justify-center items-center'>
                     <CalendarDays size={22} color="#ea580c" />
                     <Text className="text-lg font-bold text-gray-800 mt-2">{lastMaintenance}</Text>
                 </View>
                 <Text className="text-gray-500 mt-1">Last Maintenance</Text>
-            </View>
+            </TouchableOpacity>
         </View>
     );
 }
 
-function DroneFooterActions({ assigned, bottomInset, droneId }: { assigned: boolean; bottomInset: number; droneId: string }) {
-    const router = useRouter();
+function DroneFooterActions({ assigned, bottomInset, droneId, router }: { assigned: boolean; bottomInset: number; droneId: string, router: Router }) {
+
     const [connected, setConnected] = useState(false);
     const [showConnectModal, setShowConnectModal] = useState(false);
     const [password, setPassword] = useState('');
@@ -170,7 +172,7 @@ function DroneFooterActions({ assigned, bottomInset, droneId }: { assigned: bool
                 </View>
             </Modal>
 
-            {!connected && assigned ? (
+            {/* {!connected && assigned ? (
                 <TouchableOpacity
                     className="bg-primary rounded-xl py-4 mb-3 items-center"
                     onPress={() => setShowConnectModal(true)}
@@ -188,7 +190,7 @@ function DroneFooterActions({ assigned, bottomInset, droneId }: { assigned: bool
                 >
                     <Text className="text-white text-lg font-semibold">Run Pre-Flight Checklist</Text>
                 </TouchableOpacity>
-            )}
+            )} */}
 
             <TouchableOpacity
                 className="bg-gray-100 rounded-xl py-4 items-center"
@@ -244,7 +246,10 @@ export default function DroneDetail() {
     const insets = useSafeAreaInsets();
     const params = useLocalSearchParams<{ id?: string; assigned?: string }>();
     const { flightHistory, loading, error } = useFlightHistory(params.id);
-
+    const router = useRouter();
+    const handleMaintainanceClick = () => {
+        router.push({ pathname: "/(app)/maintainance", params: { droneId: params?.id } })
+    }
     // Validate and merge params with mock data
     const drone: Drone = {
         ...mockDrone,
@@ -275,6 +280,7 @@ export default function DroneDetail() {
                 <DroneStats
                     totalFlights={flightHistory.length}
                     lastMaintenance={drone.lastMaintenance}
+                    handleMaintainanceClick={handleMaintainanceClick}
                 />
 
                 <View className="px-6">
@@ -335,6 +341,7 @@ export default function DroneDetail() {
                 assigned={drone.assigned}
                 bottomInset={insets.bottom}
                 droneId={drone.id}
+                router={router}
             />
         </View>
     );

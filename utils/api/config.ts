@@ -10,7 +10,7 @@ export const USER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6
 // Handle localhost for different platforms
 const getLocalhost = () => {
   if (Platform.OS === 'android') {
-    return 'http://192.168.1.6:6000'; // Android emulator localhost
+    return 'http://192.168.1.88:6000'; // Android emulator localhost
   }
   if (Platform.OS === 'ios') {
     return 'http://localhost:6000'; // iOS simulator localhost
@@ -91,7 +91,13 @@ export const locationIdToNameMap = {
   "676cfe2814edda2e286b98d1": "asdfghjkk",
   "680c718af80785e475d5737e": "Tosekgre SC",
   "683da258f519573ac82dc5cf": "Mapsko Casa Bella",
-  
+  "63932c7ab1cab628335ae969": "Jengjal",
+  "6710ccbaec74d6e8c513ec8f": "Testing Tab",
+  "65e06baa3e4ce03cdb92f18e": "Bilaspur",
+  "65e6e60c9c75b119083c9530": "Rishikesh",
+  "65eac3286a599653eac38d62": "Gurugram",
+  "65f15b99a46eccde40b1d966": "Guwahati",
+  "683da0149177ac86eb21811f": "Myntra Bilaspur FC",
   // From TE-clearsky-training.locationinfos.json
   // (Note: This file contains the same locations as above, so no additional entries needed)
 };

@@ -1,6 +1,67 @@
 import { BaseService } from "./BaseService";
 
-export interface FlightHistoryItem {
+interface ChecklistItem {
+  _id: string;
+  serial_no: number;
+  templateType_name: string;
+  active: boolean;
+  label: string;
+  parameters: any[]; // Can be more specific if parameter structure is known
+  confirm: boolean;
+  notes: string;
+  __v: number;
+}
+
+interface FlightStatusTimestamps {
+  created: string | null;
+  assignedToDrone: string | null;
+  started: string | null;
+  preCheck: string | null;
+  missionStarted: string | null;
+  missionCompleted: string | null;
+  postCheck: string | null;
+  payloadRemoved: string | null;
+  flightLogUploaded: string | null;
+  aborted: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ScheduleDetail {
+  date: string;
+  doneBy: string;
+  reason: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ScheduleLog extends ScheduleDetail {}
+
+interface MissionDetails {
+  takeoffAMSL: number | null;
+  landingAMSL: number | null;
+  maxAMSL: number | null;
+  minAMSL: number | null;
+  AMSLdifference: number | null;
+  missionFileLink: string | null;
+  roadDistance: number | null;
+  roadTime: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface FlightLog {
+  isFlightLogAdded: boolean;
+  logFileName: string | null;
+  date: string | null;
+}
+
+interface FinalStatus {
+  status: boolean;
+  reason: string | null;
+}
+
+export interface Flight {
   _id: string;
   drone_id: string;
   localFlightId: string;
@@ -10,12 +71,12 @@ export interface FlightHistoryItem {
   hub_id: string;
   date_created: string;
   mission_file: string;
-  mission_details: any;
+  mission_details: MissionDetails;
   time_taken: number;
   start_location: string;
   end_location: string;
   payload: number;
-  uploadMissionFile: any;
+  uploadMissionFile: string | null;
   flight_type: string;
   order_no: string;
   order_type: string;
@@ -24,16 +85,16 @@ export interface FlightHistoryItem {
   dronebookingId: string;
   isCompleted: boolean;
   isAborted: boolean;
-  finalStatus: any;
+  finalStatus: FinalStatus;
   flightDoneUsing: string;
-  flightLog: any;
+  flightLog: FlightLog;
   isPreFlightChecklistCompleted: boolean;
   isPostFlightChecklistCompleted: boolean;
-  preFlightChecklist: any[];
-  postFlightChecklist: any[];
-  flightStatus: any;
-  scheduleDetails: any;
-  scheduleLog: any[];
+  preFlightChecklist: ChecklistItem[];
+  postFlightChecklist: ChecklistItem[];
+  flightStatus: FlightStatusTimestamps;
+  scheduleDetails: ScheduleDetail;
+  scheduleLog: ScheduleLog[];
   createdAt: string;
   updatedAt: string;
   __v: number;
@@ -42,7 +103,7 @@ export interface FlightHistoryItem {
 interface FlightHistoryApiResponse {
   status: string;
   message: string;
-  data: FlightHistoryItem[];
+  data: Flight[];
 }
 
 
@@ -74,8 +135,20 @@ class FlightService extends BaseService {
     // }
   }
 
+  async getAllLocationBasedFlights(locationId: string){
+    return this.get(`flight-location/${locationId}`);
+  }
+
   async connectDrone(droneId: string) {
     return this.post(`connect-drone?droneId=${droneId}`);
+  }
+
+  async getAllShipments(){
+    return this.get("my-shipments")
+  }
+
+  async getOneShipment(flightId:string){
+    return this.get(`flight-shipments/${flightId}`);
   }
 
   async getPreFlight(config:any) {

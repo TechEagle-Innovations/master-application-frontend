@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import BatteryIcon from '@/assets/images/battery.svg';
 import DroneIcon from '@/assets/images/droneIcon.svg';
+import { locationIdToNameMap } from '@/utils/api/config';
 
 interface InFlightDroneCardProps {
   id: string;
@@ -44,7 +45,7 @@ const InFlightDroneCard: React.FC<InFlightDroneCardProps> = ({ id, droneId, from
           className={`w-[45%] text-base truncate ${arrived ? 'text-white' : 'text-gray-700'}`}
           numberOfLines={1}
         >
-          {from.split(' ').slice(0, 7).join(' ')}{from.split(' ').length > 7 ? '...' : ''}
+          {locationIdToNameMap[from].split(' ').slice(0, 7).join(' ')}{locationIdToNameMap[from].split(' ').length > 7 ? '...' : ''}
         </Text>
 
         {/* ETA center text */}
@@ -57,7 +58,7 @@ const InFlightDroneCard: React.FC<InFlightDroneCardProps> = ({ id, droneId, from
           className={`w-[45%] text-base text-right truncate ${arrived ? 'text-white' : 'text-gray-700'}`}
           numberOfLines={1}
         >
-          {to.split(' ').slice(0, 7).join(' ')}{to.split(' ').length > 7 ? '...' : ''}
+          {locationIdToNameMap[to].split(' ').slice(0, 7).join(' ')}{locationIdToNameMap[to].split(' ').length > 7 ? '...' : ''}
         </Text>
       </View>
     </TouchableOpacity>

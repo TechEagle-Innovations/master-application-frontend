@@ -24,7 +24,7 @@ export default function AppLayout() {
           headerShown: false, // Hide header for history screen
         }}
       />
-       <Stack.Screen
+      <Stack.Screen
         name="shipment-detail"
         options={{
           headerShown: false, // Hide header for history screen
@@ -42,7 +42,7 @@ export default function AppLayout() {
           headerShown: false,
         }}
       />
-       <Stack.Screen
+      <Stack.Screen
         name="maintenance-detail"
         options={{
           headerShown: false,
@@ -66,20 +66,57 @@ export default function AppLayout() {
           headerShown: false,
         }}
       />
-        <Stack.Screen
+      <Stack.Screen
         name="preflight-checklist"
         options={{
           headerShown: false,
         }}
       />
-       <Stack.Screen
+      <Stack.Screen
         name="drone-tracking"
         options={{
           headerShown: false,
         }}
       />
-       <Stack.Screen
+      <Stack.Screen
         name="postflight-checklist"
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="battery-info"
+        options={{
+          headerShown: false,
+        }}
+      />
+       <Stack.Screen
+        name="after-charging"
+        options={{
+          headerShown: false,
+        }}
+      />
+       <Stack.Screen
+        name="add-battery"
+        options={{
+          headerShown: false,
+        }}
+      />
+       <Stack.Screen
+        name="drones"
+        options={{
+          headerShown: false,
+        }}
+      />
+       <Stack.Screen
+        name="maintainance"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="parcels"
         options={{
           headerShown: false,
         }}

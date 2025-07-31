@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import type { Shipment, ReportIssueDto } from '../types/shipment';
+import { Flight } from './api/services/FlightService';
 
 
 const shipmentData: Shipment[] = [
@@ -328,11 +329,13 @@ const maintenanceData: Maintenance[] = [
 interface ShipmentContextProps {
     shipments: Shipment[];
     shipment: Shipment | null;
+    selectedFLight: Flight | null;
     setShipment: (shipment: Shipment | null) => void;
     maintenanceRecords: Maintenance[];
     maintenance: Maintenance | null;
     setMaintenance: (maintenance: Maintenance | null) => void;
     setShipments: (shipments: Shipment[]) => void;
+    setSelectedFlight: (flight: Flight) => void;
     setMaintenanceRecords: (records: Maintenance[]) => void;
 }
 
@@ -343,9 +346,10 @@ export const ShipmentProvider = ({ children }: { children: ReactNode }) => {
     const [shipments, setShipments] = useState<Shipment[]>(shipmentData);
     const [maintenance, setMaintenance] = useState<Maintenance | null>(null);
     const [maintenanceRecords, setMaintenanceRecords] = useState<Maintenance[]>(maintenanceData);
+    const [selectedFLight, setSelectedFlight]=useState<Flight | null >(null);
 
     return (
-        <ShipmentContext.Provider value={{ shipments, shipment, setShipment, maintenanceRecords, maintenance, setMaintenance, setShipments, setMaintenanceRecords }}>
+        <ShipmentContext.Provider value={{ shipments, shipment, setShipment, maintenanceRecords, maintenance, setMaintenance, setShipments, setMaintenanceRecords, selectedFLight, setSelectedFlight }}>
             {children}
         </ShipmentContext.Provider>
     );

@@ -1,51 +1,12 @@
 {
   "expo": {
-    "name": "master-application-frontend",
-    "slug": "master-application-frontend",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "masterapplicationfrontend",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "ios": {
-      "supportsTablet": true
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.masterapplicationfrontend"
-    },
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
-    },
-    "plugins": [
-      "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
-        }
-      ],
-      "expo-video"
-    ],
-    "experiments": {
-      "typedRoutes": true
-    },
     "extra": {
-      "router": {},
       "eas": {
-        "projectId": "d7dd2713-e71a-4e89-a848-281e470de472"
+        "projectId": "a5570ca0-95eb-4d9a-aa53-4acf0e899032"
       }
     },
-    "owner": "dnyaneshwarsuryawanshi"
+    "android": {
+      "package": "com.dnyaneshwarsuryawanshi.masterapplicationfrontend"
+    }
   }
 }

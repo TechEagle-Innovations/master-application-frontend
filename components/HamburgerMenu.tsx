@@ -1,11 +1,10 @@
 import { useAuth } from '@/utils/auth/AuthContext';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, SafeAreaView, TouchableWithoutFeedback, StatusBar, Platform, Animated, Easing } from 'react-native';
-import { UserCircleIcon } from 'react-native-heroicons/solid';
+import { UserCircleIcon, ChevronDownIcon, ChevronUpIcon } from 'react-native-heroicons/solid';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Logout from "@/assets/images/logout.svg";
 import Battery from "@/assets/images/battery.svg";
-import Location from "@/assets/images/location.svg";
 import Help from "@/assets/images/help.svg";
 import { useRouter } from 'expo-router';
 
@@ -14,10 +13,10 @@ interface HamburgerMenuProps {
   onClose: () => void;
 }
 
-// Custom hook for menu animation (SRP, OCP)
+// Custom hook for menu animation
 function useMenuAnimation(isVisible: boolean) {
-  const slideAnim = useRef(new Animated.Value(1)).current; // 1 = offscreen, 0 = onscreen
-  const fadeAnim = useRef(new Animated.Value(0)).current; // 0 = transparent, 1 = visible
+  const slideAnim = useRef(new Animated.Value(1)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   const [renderMenu, setRenderMenu] = useState(isVisible);
 
   useEffect(() => {
@@ -65,6 +64,7 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isVisible, onClose }) => 
   const { logout, user } = useAuth();
   const router = useRouter();
   const { slideAnim, fadeAnim, renderMenu } = useMenuAnimation(isVisible);
+  const [assetsExpanded, setAssetsExpanded] = useState(false);
 
   const handleLogout = useCallback(async () => {
     await logout();
@@ -75,6 +75,10 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isVisible, onClose }) => 
     router.push(path as any);
     onClose();
   }, [router, onClose]);
+
+  const toggleAssetsMenu = useCallback(() => {
+    setAssetsExpanded(prev => !prev);
+  }, []);
 
   if (!renderMenu) {
     return null;
@@ -120,7 +124,10 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isVisible, onClose }) => 
           <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
             <View className="flex-1">
               {/* User Profile Section */}
-              <TouchableOpacity className="flex items-center p-4 border-b border-gray-200" onPress={() => handleNavigate('/(app)/profile')}>
+              <TouchableOpacity 
+                className="flex items-center p-4 border-b border-gray-200" 
+                onPress={() => handleNavigate('/(app)/profile')}
+              >
                 <UserCircleIcon size={80} color="gray" /> 
                 <View className="ml-3">
                   <Text className="text-xl text-center ">{user?.userName}</Text>
@@ -129,24 +136,50 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isVisible, onClose }) => 
 
               {/* Menu Items */}
               <View className="flex-1 mt-4">
-                <TouchableOpacity 
-                  className="flex-row items-center p-6 active:bg-gray-100"
-                  accessibilityRole="button"
-                  accessibilityLabel="Batteries"
-                  onPress={() => handleNavigate('/(app)/battery')}
-                >
-                  <Battery size={24} color="black" />
-                  <Text className="ml-3 text-lg">Batteries</Text>
-                </TouchableOpacity>
+                {/* Assets Dropdown */}
+                <View>
+                  <TouchableOpacity 
+                    className="flex-row items-center justify-between p-6 active:bg-gray-100"
+                    onPress={toggleAssetsMenu}
+                    accessibilityRole="button"
+                    accessibilityLabel="Assets menu"
+                    accessibilityState={{ expanded: assetsExpanded }}
+                  >
+                    <View className="flex-row items-center">
+                      <Battery size={24} color="black" />
+                      <Text className="ml-3 text-lg">Assets</Text>
+                    </View>
+                    {assetsExpanded ? (
+                      <ChevronUpIcon size={20} color="black" />
+                    ) : (
+                      <ChevronDownIcon size={20} color="black" />
+                    )}
+                  </TouchableOpacity>
+                  
+                  {assetsExpanded && (
+                    <View className="pl-14">
+                      <TouchableOpacity 
+                        className="flex-row items-center p-4 active:bg-gray-100"
+                        onPress={() => handleNavigate('/(app)/battery')}
+                        accessibilityRole="button"
+                        accessibilityLabel="Batteries"
+                      >
+                        <Text className="text-lg">Batteries</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        className="flex-row items-center p-4 active:bg-gray-100"
+                        onPress={() => handleNavigate('/(app)/drones')}
+                        accessibilityRole="button"
+                        accessibilityLabel="Drones"
+                      >
+                        <Text className="text-lg">Drones</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+
+                {/* Help and Support */}
                 {/* <TouchableOpacity 
-                  className="flex-row items-center p-6 active:bg-gray-100"
-                  accessibilityRole="button"
-                  accessibilityLabel="Add a Location"
-                >
-                  <Location size={24} color="black" />
-                  <Text className="ml-3 text-lg">Add a Location</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
                   className="flex-row items-center p-6 active:bg-gray-100"
                   accessibilityRole="button"
                   accessibilityLabel="Help and Support"
@@ -181,4 +214,4 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isVisible, onClose }) => 
   );
 };
 
-export default HamburgerMenu; 
+export default HamburgerMenu;
