@@ -418,7 +418,7 @@ export default function BatteryInfo() {
           </TouchableOpacity>
           <TouchableOpacity
             className="flex-1 ml-2 bg-gray-100 rounded-xl py-4 items-center"
-            onPress={() => router.push(`/flights-history?id=${battery._id}`)}
+            onPress={() => router.push({pathname:`/(app)/battery-flight-history`})}
           >
             <Ionicons name="airplane-outline" size={24} color="#f97316" />
             <Text className="mt-1 text-base text-gray-800">Flights History</Text>

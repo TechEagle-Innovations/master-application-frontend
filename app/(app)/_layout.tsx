@@ -132,6 +132,13 @@ export default function AppLayout() {
           headerShown: false,
         }}
       />
+
+      <Stack.Screen
+        name="battery-flight-history"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

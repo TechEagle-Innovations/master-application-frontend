@@ -25,6 +25,8 @@ export default function ChargeSessionDetails() {
   const { sessionIndex } = useLocalSearchParams<{ sessionIndex: string }>();
   const { selectedBattery } = useShipment();
 
+  console.log("Selected Battery:", selectedBattery?.flight_history);
+
   // Retrieve session from selectedBattery.history
   const data: ChargeSession | null = React.useMemo(() => {
     const idx = sessionIndex ? parseInt(sessionIndex, 10) : NaN;
