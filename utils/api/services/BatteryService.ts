@@ -76,6 +76,11 @@ class BatteryService extends BaseService {
         console.log('Stopping charging for battery:', batteryId);
         return this.post(`/charge-history/${batteryId}`, data);
     }
+
+    async discardBattery(batteryId: string) {
+        console.log('Discarding battery:', batteryId);
+        return this.put(`discard/${batteryId}`, {});
+    }
 }
 
 export const batteryService = BatteryService.getInstance(); 

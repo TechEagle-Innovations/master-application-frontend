@@ -6,6 +6,7 @@ import Header from '@/components/Header';
 import { Battery, batteryService } from '@/utils/api/services/BatteryService';
 import BatteryCard from '@/components/BatteryCard';
 import { useRouter } from 'expo-router';
+import { useShipment } from '@/utils/ShipmentContext';
 
 const TABS = [
     { label: 'Available', value: 'available' },
@@ -22,14 +23,36 @@ const FILTERS = [
 // Use a flexible type for batteries to support new backend fields
 export type BatteryAPI = {
   _id: string;
+  __v?: number;
   battery_id?: string;
+  battery_type?: string;
   charged_status?: string;
-  last_used?: string;
-  serialNumber?: string;
-  chargingPercentage?: number;
-  // ...other fields
+  createdAt?: string;
+  created_by?: string;
+  curr_max_vdiff?: number;
+  current_voltage?: number;
+  cycle_count?: number;
+  flight_history?: any[]; // You might want to replace 'any' with a more specific type
+  history?: {
+    cell_voltage?: any; // Replace with proper type if you know the structure
+    charge_end_time?: string;
+    charge_start_time?: string;
+    charging_hours?: number;
+    maxVdiff?: number;
+    monitor_by?: string;
+    remark?: string;
+    voltage_after_charge?: number;
+    voltage_before_charge?: number;
+  }[];
+  hubId?: string;
+  image?: string;
+  locationId?: string;
+  mah?: number;
+  model?: string;
+  num_of_cells?: number;
+  updatedAt?: string;
+  voltage?: number;
 };
-
 export default function BatteryScreen() {
     const insets = useSafeAreaInsets();
     const router = useRouter();
@@ -39,7 +62,7 @@ export default function BatteryScreen() {
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'available' | 'discarded'>('available');
     const [activeFilter, setActiveFilter] = useState<'all' | 'charged' | 'discharged' | 'charging'>('all');
-
+    const {setSelectedBattery}= useShipment();
     const fetchBatteries = async () => {
         try {
             setLoading(true);
@@ -61,11 +84,11 @@ export default function BatteryScreen() {
 
     // Filter logic
     const filteredBatteries = batteries?.filter(b => {
-        if (activeTab === 'discarded') return false; // For now
-        if (activeFilter === 'charged') return b.charged_status === 'charged';
+        if (activeTab === 'discarded') return b.charged_status==="dicarded"; // For now
+        if (activeFilter === 'charged') return b.charged_status === 'charged' ;
         if (activeFilter === 'discharged') return b.charged_status === 'discharged';
         if (activeFilter === 'charging') return b.charged_status === 'charging';
-        return true; // "all"
+        return b.charged_status!="dicarded"; // "all"
     }) || [];
 
     return (
@@ -135,7 +158,9 @@ export default function BatteryScreen() {
                         <BatteryCard
                             key={battery._id}
                             battery={battery}
-                            onPress={() => router.push({ pathname: '/(app)/battery-info', params: { id: battery._id } })}
+                            onPress={() =>{
+                                setSelectedBattery(battery);
+                                 router.push({ pathname: '/(app)/battery-info', params: { id: battery._id } })}}
                         />
                     );
                 })}

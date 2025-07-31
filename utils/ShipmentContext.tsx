@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import type { Shipment, ReportIssueDto } from '../types/shipment';
 import { Flight } from './api/services/FlightService';
+import { BatteryAPI } from '@/app/(app)/battery';
 
 
 const shipmentData: Shipment[] = [
@@ -341,6 +342,8 @@ interface ShipmentContextProps {
     setStartVoltage: (voltage: number | null) => void;
     startTime: string | null;
     setStartTime: (time: string | null) => void;
+    selectedBattery: BatteryAPI | null;
+    setSelectedBattery: (battery: BatteryAPI | null) => void;
 }
 
 const ShipmentContext = createContext<ShipmentContextProps | undefined>(undefined);
@@ -353,6 +356,8 @@ export const ShipmentProvider = ({ children }: { children: ReactNode }) => {
     const [selectedFLight, setSelectedFlight]=useState<Flight | null >(null);
     const [startVoltage, setStartVoltage] = useState<number | null>(null);
       const [startTime, setStartTime] = useState<string | null>(null);
+    const [selectedBattery, setSelectedBattery] = useState<BatteryAPI | null>(null);
+
 
     return (
         <ShipmentContext.Provider value={{ 
@@ -369,7 +374,8 @@ export const ShipmentProvider = ({ children }: { children: ReactNode }) => {
             setShipments, 
             setMaintenanceRecords, 
             selectedFLight, 
-            setSelectedFlight 
+            setSelectedFlight, 
+selectedBattery, setSelectedBattery
         }}>
             {children}
         </ShipmentContext.Provider>
