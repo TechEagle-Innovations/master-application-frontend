@@ -125,7 +125,7 @@ class FlightService extends BaseService {
     return this.get('all-drones-at-hub');
   }
 
-  async getFlightHistory(droneId: string): Promise<FlightHistoryItem[]> {
+  async getFlightHistory(droneId: string): Promise<Flight[]> {
     // try {
     // const response: FlightHistoryApiResponse = await this.get(`flight-history/${droneId}`);
     return await this.get(`flight-history/${droneId}`);

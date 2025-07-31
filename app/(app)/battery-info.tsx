@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Header from '@/components/Header';
 import { batteryService } from '@/utils/api/services/BatteryService';
 import VoltagePopup from '@/components/VoltagePopup';
+import { useShipment } from '@/utils/ShipmentContext';
 
 interface Battery {
   _id: string;
@@ -36,8 +37,7 @@ export default function BatteryInfo() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [popupVisible, setPopupVisible] = useState(false);
-  const [startVoltage, setStartVoltage] = useState<number | null>(null);
-  const [startTime, setStartTime] = useState<string | null>(null);
+  const { startVoltage, setStartVoltage, setStartTime, startTime } = useShipment();
 
   useEffect(() => {
     if (!id) {
@@ -62,7 +62,7 @@ export default function BatteryInfo() {
         setLoading(false);
       }
     })();
-  }, [id]);
+  }, [id, popupVisible]);
 
   if (loading) {
     return (
@@ -91,11 +91,25 @@ export default function BatteryInfo() {
   const showStart = battery.charged_status === 'discharged';
   const showEnd = battery.charged_status === 'charging';
 
-  const onPopupConfirm = (voltage: number, timestamp: string) => {
+  const onPopupConfirm = async(voltage: number, timestamp: string) => {
     setStartVoltage(voltage);
     setStartTime(timestamp);
-    setPopupVisible(false);
     // TODO: call API to start charging, pass voltage and time
+    try {
+      if (battery.battery_id) {
+       const startCharging= await batteryService.startCharging(battery.battery_id);
+        console.log('Charging started:', startCharging);
+        
+      } else {
+        throw new Error('Battery ID is missing.');
+      }
+    } catch (error) {
+      console.error('Error starting charging:', error);
+      // Handle error (e.g., show alert)
+    }finally {
+    setPopupVisible(false);
+
+    }
   };
 
   return (
@@ -203,7 +217,7 @@ export default function BatteryInfo() {
               onPress={() =>
                 router.push({
                   pathname: '/(app)/after-charging',
-                  params: { noOfCells: battery?.num_of_cells?.toString() },
+                  params: { noOfCells: battery?.num_of_cells?.toString(), voltage: startVoltage?.toString(), startTime: startTime?.toString(), batteryId: battery.battery_id },
                 })
               }
             >

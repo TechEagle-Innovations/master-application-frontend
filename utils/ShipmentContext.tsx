@@ -337,6 +337,10 @@ interface ShipmentContextProps {
     setShipments: (shipments: Shipment[]) => void;
     setSelectedFlight: (flight: Flight) => void;
     setMaintenanceRecords: (records: Maintenance[]) => void;
+    startVoltage: number | null;
+    setStartVoltage: (voltage: number | null) => void;
+    startTime: string | null;
+    setStartTime: (time: string | null) => void;
 }
 
 const ShipmentContext = createContext<ShipmentContextProps | undefined>(undefined);
@@ -347,9 +351,26 @@ export const ShipmentProvider = ({ children }: { children: ReactNode }) => {
     const [maintenance, setMaintenance] = useState<Maintenance | null>(null);
     const [maintenanceRecords, setMaintenanceRecords] = useState<Maintenance[]>(maintenanceData);
     const [selectedFLight, setSelectedFlight]=useState<Flight | null >(null);
+    const [startVoltage, setStartVoltage] = useState<number | null>(null);
+      const [startTime, setStartTime] = useState<string | null>(null);
 
     return (
-        <ShipmentContext.Provider value={{ shipments, shipment, setShipment, maintenanceRecords, maintenance, setMaintenance, setShipments, setMaintenanceRecords, selectedFLight, setSelectedFlight }}>
+        <ShipmentContext.Provider value={{ 
+            shipments, 
+            shipment, 
+            startTime, 
+            setStartTime, 
+            setShipment, 
+            maintenanceRecords, 
+            maintenance, 
+            setMaintenance, 
+            startVoltage, 
+            setStartVoltage, 
+            setShipments, 
+            setMaintenanceRecords, 
+            selectedFLight, 
+            setSelectedFlight 
+        }}>
             {children}
         </ShipmentContext.Provider>
     );

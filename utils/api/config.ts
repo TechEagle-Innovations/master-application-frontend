@@ -10,7 +10,7 @@ export const USER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6
 // Handle localhost for different platforms
 const getLocalhost = () => {
   if (Platform.OS === 'android') {
-    return 'http://192.168.1.88:6000'; // Android emulator localhost
+    return 'http://192.168.1.117:6000'; // Android emulator localhost
   }
   if (Platform.OS === 'ios') {
     return 'http://localhost:6000'; // iOS simulator localhost

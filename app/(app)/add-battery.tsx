@@ -5,6 +5,9 @@ import Header from '@/components/Header';
 import Button from '@/components/auth/Button';
 import * as ImagePicker from 'expo-image-picker';
 import { Picker } from '@react-native-picker/picker';
+import { batteryService } from '@/utils/api/services/BatteryService';
+import { useImageUpload } from '@/hooks/useImageUpload';
+import { useRouter } from 'expo-router';
 
 const BATTERY_TYPES = ['Li-ion', 'NiMH', 'Lead Acid', 'LiPo'];
 
@@ -18,26 +21,88 @@ export default function AddBattery() {
   const [batteryType, setBatteryType] = useState(BATTERY_TYPES[0]);
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const {uploadImage} = useImageUpload();
+  const router = useRouter();
 
-  const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      setImage(result.assets[0].uri);
+  const getNameAndType = (asset: any) => {
+    let name = asset.fileName || 'photo.jpg';
+    let type = asset.type || 'image/jpeg';
+    return { name, type };
+  };
+  const pickImage = async (): Promise<boolean> => {
+    try {
+      const permission = await ImagePicker.requestCameraPermissionsAsync();
+      if (!permission.granted) {
+       
+        return false;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['images'],
+        allowsEditing: false,
+        aspect: [4, 3],
+        quality: 0.8,
+        cameraType: ImagePicker.CameraType.back,
+      });
+      console.log("IMAGE RESULT", JSON.stringify(result));
+      if (result.canceled) {
+        return false;
+      }
+      if (result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        const { name, type } = getNameAndType(asset);
+        // Upload the image and get the URL
+        const url = await uploadImage(asset.uri, name, type);
+        if (url) {
+          setImage(url);
+          return true;
+        } else {
+          return false;
+        }
+      }
+      return false;
+    } catch (e) {
+      return false;
     }
   };
+  // const pickImage = async () => {
+  //   let result = await ImagePicker.launchImageLibraryAsync({
+  //     mediaTypes: ImagePicker.MediaTypeOptions.Images,
+  //     allowsEditing: true,
+  //     aspect: [4, 3],
+  //     quality: 1,
+  //   });
+  //   if (!result.canceled && result.assets && result.assets.length > 0) {
+  //     setImage(result.assets[0].uri);
+  //   }
+  // };
 
   const handleAddBattery = async () => {
     setLoading(true);
     // TODO: Integrate with batteryService to add battery
-    setTimeout(() => {
+    const batteryData = {
+      model,
+      num_of_cells: parseInt(numCells, 10),
+      voltage: parseFloat(voltage),
+      mah: parseInt(mah, 10),
+      battery_type: batteryType.toLowerCase() as 'li-ion' | 'li-po',
+      image: image || '',
+      current_voltage: parseFloat(voltage), 
+      curr_max_vdiff: 0, // Placeholder for max voltage difference
+    };
+    try {
+      // Call the battery service to add the battery
+      // await batteryService.addBattery(batteryData);
+      const battery= await batteryService.addBattery(batteryData);
+      console.log('Battery added:', battery);
+      console.log('BatteryDATA:', batteryData);
+    } catch (error) {
+      console.error('Error adding battery:', error);
+      // Handle error (e.g., show alert)
+    }finally{
       setLoading(false);
-      // TODO: Navigate back or show success
-    }, 1200);
+      router.back();
+    }
+    
   };
 
   return (
@@ -59,13 +124,13 @@ export default function AddBattery() {
           )}
         </TouchableOpacity>
         {/* Battery ID */}
-        <Text className="mb-1 text-gray-700 mb-2">Battery ID</Text>
+        {/* <Text className="mb-1 text-gray-700 mb-2">Battery ID</Text>
         <TextInput
           className="w-full border border-gray-300 rounded-lg px-4 py-3 mb-4 text-base"
           placeholder="Enter Battery ID"
           value={batteryId}
           onChangeText={setBatteryId}
-        />
+        /> */}
         {/* Model */}
         <Text className="mb-1 text-gray-700 mb-2">Model</Text>
         <TextInput
