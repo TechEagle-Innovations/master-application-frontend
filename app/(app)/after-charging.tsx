@@ -4,15 +4,19 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Header from '@/components/Header';
 import Button from '@/components/auth/Button';
 import { useLocalSearchParams } from 'expo-router';
+import { useAuth } from '@/utils/auth/AuthContext';
+import { batteryService } from '@/utils/api/services/BatteryService';
 
 export default function AfterCharging() {
   const insets = useSafeAreaInsets();
-  const { noOfCells } = useLocalSearchParams<{ noOfCells: string }>();
+  const { noOfCells, voltage, startTime, batteryId } = useLocalSearchParams<{ noOfCells: string, voltage: string, startTime: string, batteryId: string }>();
   const [voltageAfter, setVoltageAfter] = useState('');
   const [cellVoltages, setCellVoltages] = useState<string[]>([]);
   const [remarks, setRemarks] = useState('');
   const [loading, setLoading] = useState(false);
-
+  const { user} =useAuth()
+ console.log("START TIME", startTime);
+ console.log("VOLTAGE", voltage);
   useEffect(() => {
     const count = parseInt(noOfCells || '0', 10);
     if (!isNaN(count) && count > 0) {
@@ -25,19 +29,40 @@ export default function AfterCharging() {
     updated[index] = value;
     setCellVoltages(updated);
   };
+  const sortCellVoltages = cellVoltages.map(v => parseFloat(v)).sort();
+  const maxVdiff = sortCellVoltages[sortCellVoltages.length - 1] - sortCellVoltages[0];
+  //create a hard code startTime for 1 hour ago from current time
+  const oneHourAgo = new Date(new Date().getTime() - 60 * 60 * 1000).toISOString();
+  const startChargeTime = startTime || oneHourAgo;
+  console.log("START CHARGE TIME", startChargeTime);
+  const stopCharging = {
+    charge_start_time: startChargeTime,
+    charge_end_time: new Date().toISOString(),
+    cell_voltage: cellVoltages.reduce((acc, v, i) => ({ ...acc, [`V${i + 1}`]: parseFloat(v) }), {}),
+    maxVdiff: maxVdiff,
+    voltage_before_charge: parseFloat(voltage || '0'),
+    voltage_after_charge: parseFloat(voltageAfter),
+    remark: remarks,
+    monitor_by: user?.email, 
+  }
 
   const handleDone = async () => {
     setLoading(true);
     // TODO: Send voltageAfter, cellVoltages[], and remarks to backend
-    console.log({
-      voltageAfter,
-      cellVoltages,
-      remarks,
-    });
-    setTimeout(() => {
+    try {
+      const stopChargingResponse = await batteryService.stopCharging(batteryId, stopCharging);
+      console.log('Stop Charging Response:', stopChargingResponse);
+    } catch (error) {
+      console.error('Error stopping charging:', error);
+      // Handle error (e.g., show alert)
+      
+    }finally {
       setLoading(false);
-      // TODO: Navigate or show success
-    }, 1200);
+      // Navigate back or show success message
+    }
+
+     
+    
   };
 
   return (

@@ -1,14 +1,12 @@
-import { Stack } from 'expo-router';
-
+import { Stack } from "expo-router";
 
 export default function AppLayout() {
-
   return (
     <Stack>
       <Stack.Screen
         name="dashboard"
         options={{
-          title: '',
+          title: "",
           headerShown: false, // Disable default header to allow custom header in DashboardScreen
         }}
       />
@@ -91,25 +89,25 @@ export default function AppLayout() {
           headerShown: false,
         }}
       />
-       <Stack.Screen
+      <Stack.Screen
         name="after-charging"
         options={{
           headerShown: false,
         }}
       />
-       <Stack.Screen
+      <Stack.Screen
         name="add-battery"
         options={{
           headerShown: false,
         }}
       />
-       <Stack.Screen
+      <Stack.Screen
         name="drones"
         options={{
           headerShown: false,
         }}
       />
-       <Stack.Screen
+      <Stack.Screen
         name="maintainance"
         options={{
           headerShown: false,
@@ -117,6 +115,26 @@ export default function AppLayout() {
       />
       <Stack.Screen
         name="parcels"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="charging-history"
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="charging-details"
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name="battery-flight-history"
         options={{
           headerShown: false,
         }}
@@ -135,4 +153,4 @@ export default function AppLayout() {
       />
     </Stack>
   );
-} 
+}

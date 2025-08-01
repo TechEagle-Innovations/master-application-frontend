@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import type { Shipment, ReportIssueDto } from '../types/shipment';
 import { Flight } from './api/services/FlightService';
+import { BatteryAPI } from '@/app/(app)/battery';
 
 
 const shipmentData: Shipment[] = [
@@ -343,6 +344,12 @@ interface ShipmentContextProps {
     setConnected: (connected: boolean) => void;
     isBatterConnected: boolean;
     setIsBatteryConnected: (isBatterConnected: boolean) => void;
+    startVoltage: number | null;
+    setStartVoltage: (voltage: number | null) => void;
+    startTime: string | null;
+    setStartTime: (time: string | null) => void;
+    selectedBattery: BatteryAPI | null;
+    setSelectedBattery: (battery: BatteryAPI | null) => void;
 }
 
 const ShipmentContext = createContext<ShipmentContextProps | undefined>(undefined);
@@ -356,8 +363,11 @@ export const ShipmentProvider = ({ children }: { children: ReactNode }) => {
     const [parcelvalidate, setParcelvalidate] = useState<boolean>(false);
     const [connected, setConnected] = useState(false);
     const [isBatterConnected, setIsBatteryConnected]=useState<boolean>(false);
+    const [startVoltage, setStartVoltage] = useState<number | null>(null);
+      const [startTime, setStartTime] = useState<string | null>(null);
+    const [selectedBattery, setSelectedBattery] = useState<BatteryAPI | null>(null);
     return (
-        <ShipmentContext.Provider value={{ shipments, shipment, setShipment, maintenanceRecords, maintenance, setMaintenance, setShipments, setMaintenanceRecords, selectedFlight, setSelectedFlight, parcelvalidate, setParcelvalidate, connected, setConnected, isBatterConnected, setIsBatteryConnected }}>
+        <ShipmentContext.Provider value={{ shipments, shipment, setShipment, maintenanceRecords, maintenance, setMaintenance, setShipments, setMaintenanceRecords, selectedFlight, setSelectedFlight, parcelvalidate, setParcelvalidate, connected, setConnected, isBatterConnected, setIsBatteryConnected, startVoltage, setStartVoltage, startTime, setStartTime, selectedBattery, setSelectedBattery }}>
             {children}
         </ShipmentContext.Provider>
     );
