@@ -1340,6 +1340,7 @@ import HamburgerMenu from '@/components/HamburgerMenu';
 import DownwardArrow from '@/assets/images/downward-arrow.svg';
 import UpwardArrow from '@/assets/images/upward-arrow.svg';
 import { locationIdToNameMap } from '@/utils/api/config';
+import { useShipment } from '@/utils/ShipmentContext';
 
 
 // Flight status types
@@ -1357,7 +1358,7 @@ interface FlightHistoryCardProps {
   flight: Flight;
   onPress: (flight: Flight) => void;
 }
-interface  FlightCardProps{
+interface FlightCardProps {
   flight: Flight;
   onPress: (flight: Flight) => void;
   userLocation: string | undefined
@@ -1374,8 +1375,8 @@ const FlightCard: React.FC<FlightCardProps> = React.memo(({ flight, onPress, use
     hour: '2-digit',
     minute: '2-digit'
   });
- let startLocation: string=flight.start_location.toString();
- let endLocation: string=flight.end_location.toString();
+  let startLocation: string = flight.start_location.toString();
+  let endLocation: string = flight.end_location.toString();
   return (
     <TouchableOpacity
       className="bg-white border border-gray-100 rounded-lg p-4 mb-3 shadow-sm"
@@ -1386,16 +1387,16 @@ const FlightCard: React.FC<FlightCardProps> = React.memo(({ flight, onPress, use
       <View className="flex-row justify-between items-start w-full">
         <View className='w-full'>
           <View className='flex-row justify-between items-center'>
-          <Text className="text-lg font-semibold text-gray-800">{flight.localFlightId}</Text>
-          {userLocation==flight.start_location && <UpwardArrow /> }
-          {userLocation==flight.end_location && <DownwardArrow />}
+            <Text className="text-lg font-semibold text-gray-800">{flight.localFlightId}</Text>
+            {userLocation == flight.start_location && <UpwardArrow />}
+            {userLocation == flight.end_location && <DownwardArrow />}
           </View>
           <Text className="text-gray-500 mt-1">{locationIdToNameMap[startLocation]} → {locationIdToNameMap[endLocation]}</Text>
         </View>
       </View>
       <View className="mt-2 flex-row justify-between items-center">
         <Text className="text-gray-500">{formattedDate} at {formattedTime}</Text>
-        <Text className="text-gray-300 text-2xl">›</Text>
+        <Text className="text-gray-500 text-base">{flight.drone_id}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -1526,6 +1527,7 @@ const FlightDashboard: React.FC = () => {
   const [activeNav, setActiveNav] = useState<'flights' | 'parcels'>('flights');
   const [error, setError] = useState<string | null>(null);
   const [flights, setFlights] = useState<Flight[]>([]);
+  const { setSelectedFlight } = useShipment();
 
   // Fetch flights based on user's location
   const fetchFlights = useCallback(async () => {
@@ -1586,30 +1588,39 @@ const FlightDashboard: React.FC = () => {
     let tabFiltered = flights.filter(flight => {
       if (activeTab === 'scheduled') {
         const scheduledDate = new Date(flight.scheduleDetails.date);
-        const currentDate = new Date();
-
-        // Strip time portion for accurate date-only comparison
+      
+        // Get current date in IST as a Date object
+        const nowUTC = new Date();
+        const istOffset = 5.5 * 60 * 60 * 1000; // +5:30 offset in milliseconds
+        const currentISTDate = new Date(nowUTC.getTime() + istOffset);
+      
         const scheduledDateStr = scheduledDate.toISOString().split('T')[0];
-        const currentDateStr = currentDate.toISOString().split('T')[0];
-
+        const currentDateStr = currentISTDate.toISOString().split('T')[0];
+      
         console.log("SCHEDULE", scheduledDateStr, currentDateStr);
-
-        return !flight.isPreFlightChecklistCompleted &&
+      
+        return (
+          !flight.isPreFlightChecklistCompleted &&
           !flight.isCompleted &&
-          scheduledDateStr >= currentDateStr;
-      }
-      else if (activeTab === 'ongoing') {
+          scheduledDateStr >= currentDateStr // excludes today
+        );
+      } else if (activeTab === 'ongoing') {
         const scheduledDate = new Date(flight.scheduleDetails.date);
-        const currentDate = new Date();
-
-        // Compare only the date parts
+      
+        const nowUTC = new Date();
+        const istOffset = 5.5 * 60 * 60 * 1000;
+        const currentISTDate = new Date(nowUTC.getTime() + istOffset);
+      
         const scheduledDateStr = scheduledDate.toISOString().split('T')[0];
-        const currentDateStr = currentDate.toISOString().split('T')[0];
-
-        return flight.isPreFlightChecklistCompleted &&
+        const currentDateStr = currentISTDate.toISOString().split('T')[0];
+      
+        return (
+          flight.isPreFlightChecklistCompleted &&
           !flight.isPostFlightChecklistCompleted &&
-          scheduledDateStr === currentDateStr;
+          scheduledDateStr === currentDateStr
+        );
       }
+      
       else { // history
         return flight.isCompleted && flight.isPostFlightChecklistCompleted && flight.isPreFlightChecklistCompleted;
       }
@@ -1630,6 +1641,7 @@ const FlightDashboard: React.FC = () => {
   }, [flights, activeTab, searchQuery]);
 
   const handleFlightPress = useCallback((flight: Flight) => {
+    setSelectedFlight(flight);
     if (activeTab === 'scheduled') {
       router.push({
         pathname: '/(app)/flight-detail',
@@ -1638,14 +1650,15 @@ const FlightDashboard: React.FC = () => {
     } else if (activeTab === 'ongoing') {
 
       router.push({
-        pathname: '/(app)/drone-tracking',
+        pathname: '/(app)/flight-detail',
         params: {
           flightId: flight._id,
-          localFlightId: flight.localFlightId,
-          droneId: flight.drone_id,
-          from: flight.start_location,
-          to: flight.end_location,
-          eta: flight.time_taken,
+          // localFlightId: flight.localFlightId,
+          // droneId: flight.drone_id,
+          // from: flight.start_location,
+          // to: flight.end_location,
+          // eta: flight.time_taken,
+          tab: 'ongoing'
         }
       });
     } else {
@@ -1705,6 +1718,7 @@ const FlightDashboard: React.FC = () => {
             flight={flight}
             onPress={handleFlightPress}
             userLocation={user?.location}
+
           />
         )) : activeTab == "ongoing" ? filteredFlights.map((flight) =>
           <InFlightDroneCard
@@ -1717,6 +1731,7 @@ const FlightDashboard: React.FC = () => {
             battery={100}
             // status={flight.status}
             onPress={() => handleFlightPress(flight)}
+
           />
         ) : filteredFlights.map((flight) =>
           <FlightHistoryCard key={flight._id} flight={flight} onPress={() => handleFlightPress(flight)} />

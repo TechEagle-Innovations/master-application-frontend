@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRootNavigationState, useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import { CheckCircle2 } from 'lucide-react-native';
 import { Picker } from '@react-native-picker/picker';
@@ -21,8 +21,9 @@ const STATUS_OPTIONS = [
 // }
 
 function ShipmentFooterActions({ isDelivered, bottomInset }: { isDelivered: boolean; bottomInset: number }) {
-    const [selectedStatus, setSelectedStatus] = useState('');
+    // const [selectedStatus, setSelectedStatus] = useState('');
     const router = useRouter();
+    const { tab } = useLocalSearchParams<{ tab: string }>();
     return (
         <View
             className="px-6 bg-white "
@@ -36,9 +37,9 @@ function ShipmentFooterActions({ isDelivered, bottomInset }: { isDelivered: bool
                 zIndex: 10,
             }}
         >
-            {!isDelivered && (
+            {!isDelivered && tab==="inbound" && (
                 <View className="mb-4">
-                    <View className="bg-white rounded-2xl border border-gray-300 mb-4">
+                    {/* <View className="bg-white rounded-2xl border border-gray-300 mb-4">
                         <Picker
                             selectedValue={selectedStatus}
                             onValueChange={setSelectedStatus}
@@ -49,15 +50,15 @@ function ShipmentFooterActions({ isDelivered, bottomInset }: { isDelivered: bool
                                 <Picker.Item key={opt.value} label={opt.label} value={opt.value} />
                             ))}
                         </Picker>
-                    </View>
+                    </View> */}
                     <TouchableOpacity
                         className="bg-gray-100 rounded-xl py-4 mb-3 items-center"
                         accessibilityRole="button"
                         accessibilityLabel="Update the Status"
-                        disabled={!selectedStatus}
-                        style={{ opacity: selectedStatus ? 1 : 0.5 }}
+                        // disabled={!selectedStatus}
+                        // style={{ opacity: selectedStatus ? 1 : 0.5 }}
                     >
-                        <Text className="text-gray-800 text-lg font-semibold">Update the Status</Text>
+                        <Text className="text-gray-800 text-lg font-semibold">Hand Over</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         className="bg-orange-500 rounded-xl py-4 items-center"
@@ -142,12 +143,13 @@ export default function ShipmentDetail() {
                     </View>
                 </View>
                 {/* Post-Landing Actions */}
+                
                 <View className="bg-white rounded-2xl p-4 mb-4" style={{ elevation: 2 }}>
                     <Text className="text-lg mb-4 ">Post-Landing Actions</Text>
                     {isDelivered ? (
                         <View className="flex-row items-center mt-1">
                             <CheckCircle2 size={22} color="#22c55e" className="mr-2" />
-                            <Text className="text-base text-green-700 font-medium">Parcel Handed to Deliveryman</Text>
+                            <Text className="text-base text-green-700 font-medium">Parcel Delivered</Text>
                         </View>
                     ) : (
                         <Text className="text-base text-gray-500">No post-landing actions yet.</Text>

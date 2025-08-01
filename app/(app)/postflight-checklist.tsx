@@ -39,13 +39,7 @@ export default function PostFlightChecklist() {
       { updates },
       { headers: { "x-auth-clearsky": clearskyToken } }
     );
-    router.replace({
-      pathname: '/(app)/dashboard',
-      params: {
-        message: 'Checklist submitted successfully',
-        type: "success"
-      }
-    });
+    router.push('/(app)/pre-parcel-validation')
   }, [clearskyToken, router]);
 
   return (

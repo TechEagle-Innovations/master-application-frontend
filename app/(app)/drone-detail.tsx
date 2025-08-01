@@ -4,7 +4,7 @@ import { useRouter, useLocalSearchParams, Router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DroneImage from '@/assets/images/droneImage.svg';
 import { CalendarDays, PlaneTakeoff, Clock } from 'lucide-react-native';
-import { flightService, FlightHistoryItem } from '@/utils/api/services/FlightService';
+import { flightService, Flight } from '@/utils/api/services/FlightService';
 import Header from '@/components/Header';
 import { useAuth } from '@/utils/auth/AuthContext';
 import { CLEARSKY_URL } from '@/utils/api/config';
@@ -26,7 +26,7 @@ const mockDrone: Drone = {
     lastMaintenance: 'Oct 15, 2023',
 };
 
-function DroneStats({ totalFlights, lastMaintenance, handleMaintainanceClick }: { totalFlights: number; lastMaintenance: string, handleMaintainanceClick:()=>{} }) {
+function DroneStats({ totalFlights, lastMaintenance, handleMaintainanceClick }: { totalFlights: number; lastMaintenance: string, handleMaintainanceClick:()=>void }) {
     return (
         <View className="flex-row justify-around mb-6 px-2">
             <View className="items-center bg-gray-50 rounded-xl p-4 flex-1 mx-2 shadow-sm">
@@ -206,7 +206,7 @@ function DroneFooterActions({ assigned, bottomInset, droneId, router }: { assign
 }
 
 function useFlightHistory(droneId?: string) {
-    const [flightHistory, setFlightHistory] = useState<FlightHistoryItem[]>([]);
+    const [flightHistory, setFlightHistory] = useState<Flight[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 

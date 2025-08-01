@@ -1,12 +1,50 @@
 {
   "expo": {
+    "name": "Master Application Frontend",
+    "slug": "master-application-frontend",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.dnyaneshwarsuryawanshi.masterapplicationfrontend",
+      "config": {
+        "googleMapsApiKey": "AIzaSyAx6YgwOvCk_UZOTMnG7GpUCA0gaHYyNo4"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.dnyaneshwarsuryawanshi.masterapplicationfrontend",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyAx6YgwOvCk_UZOTMnG7GpUCA0gaHYyNo4"
+        }
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "scheme": "com.dnyaneshwarsuryawanshi.masterapplicationfrontend",
     "extra": {
       "eas": {
         "projectId": "a5570ca0-95eb-4d9a-aa53-4acf0e899032"
       }
-    },
-    "android": {
-      "package": "com.dnyaneshwarsuryawanshi.masterapplicationfrontend"
     }
   }
 }

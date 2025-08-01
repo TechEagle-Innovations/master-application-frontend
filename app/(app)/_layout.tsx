@@ -121,6 +121,18 @@ export default function AppLayout() {
           headerShown: false,
         }}
       />
+       <Stack.Screen
+        name="flight-detail"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="pre-parcel-validation"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 } 

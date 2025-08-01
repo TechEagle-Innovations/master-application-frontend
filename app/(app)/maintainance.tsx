@@ -115,11 +115,11 @@ export default function MaintenanceScreen() {
       const res = await maintainanceService.getMaintenanceRecords() as Maintenance[];
       setMaintenanceRecords(res);
     } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Failed to fetch maintenance records',
-      });
+      // Toast.show({
+      //   type: 'error',
+      //   text1: 'Error',
+      //   text2: 'Failed to fetch maintenance records',
+      // });
       console.error('Error fetching maintenance records:', error);
     } finally {
       setLoading(false);

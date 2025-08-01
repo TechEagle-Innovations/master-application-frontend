@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import BatteryIcon from '@/assets/images/battery.svg';
 import DroneIcon from '@/assets/images/droneIcon.svg';
 import { locationIdToNameMap } from '@/utils/api/config';
+import { Flight } from '@/utils/api/services/FlightService';
 
 interface InFlightDroneCardProps {
   id: string;
@@ -15,7 +16,7 @@ interface InFlightDroneCardProps {
   onPress?: () => void;
 }
 
-const InFlightDroneCard: React.FC<InFlightDroneCardProps> = ({ id, droneId, from, to, eta, battery, arrived, onPress }) => {
+const InFlightDroneCard: React.FC<InFlightDroneCardProps> = ({ id, droneId, from, to, eta, battery, arrived, onPress}) => {
   return (
     <TouchableOpacity
       className={`rounded-2xl p-4 mb-4 shadow-md ${arrived ? 'bg-orange-500' : 'bg-white'}`}

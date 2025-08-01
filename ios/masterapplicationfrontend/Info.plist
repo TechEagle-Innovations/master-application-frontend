@@ -27,8 +27,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>masterapplicationfrontend</string>
-          <string>com.anonymous.masterapplicationfrontend</string>
+          <string>com.dnyaneshwarsuryawanshi.masterapplicationfrontend</string>
         </array>
       </dict>
       <dict>

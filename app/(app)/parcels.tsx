@@ -19,6 +19,7 @@ import UpwardArrow from '@/assets/images/upward-arrow.svg';
 import { locationIdToNameMap } from '@/utils/api/config';
 import { Shipment } from '@/types/shipment';
 import { useShipment } from '@/utils/ShipmentContext';
+import { tags } from 'react-native-svg/lib/typescript/xmlTags';
 
 
 // Flight status types
@@ -141,7 +142,7 @@ const BottomNav = React.memo(({
   </View>
 ));
 
-const ShipmentCard = ({ shipment, router }: { shipment: Shipment, router: Router }) => {
+const ShipmentCard = ({ shipment, router, tab }: { shipment: Shipment, router: Router, tab: FlightTab }) => {
   const { setShipment } = useShipment();
   return (
     <TouchableOpacity
@@ -150,7 +151,7 @@ const ShipmentCard = ({ shipment, router }: { shipment: Shipment, router: Router
       accessibilityLabel={`View details for shipment ${shipment.invoiceNumber}`}
       onPress={() => {
         setShipment(shipment);
-        router.push({ pathname: '/(app)/shipment-detail' });
+        router.push({ pathname: '/(app)/shipment-detail', params:{tab: tab} });
       }}
     >
       <View>
@@ -263,35 +264,39 @@ const Parcels: React.FC = () => {
 
   // Filter flights based on active tab and search query
   const filteredFlights = useMemo(() => {
+    const userLocation = user?.location?.toLowerCase();
+    
     let tabFiltered = shipments.filter(shipment => {
+      const isDone = shipment.deliveryDetails?.isDone;
+      const receiverCity = shipment.receiverDetails?.address?.city?.toLowerCase();
+      const senderCity = shipment.senderDetails?.address?.city?.toLowerCase();
+  
       if (activeTab === 'inbound') {
-        return (
-          shipment.receiverDetails?.address?.city?.toLowerCase() === user?.location?.toLowerCase() &&
-          !shipment.deliveryDetails?.isDone
-        );
+        return receiverCity === userLocation && !isDone;
       }
       else if (activeTab === 'outbound') {
-        return (
-          shipment.senderDetails?.address?.city?.toLowerCase() === user?.location?.toLowerCase() &&
-          !shipment.deliveryDetails?.isDone
+        return senderCity === userLocation && !isDone;
+      }
+      else { // history
+        // Only show completed shipments that involved the user
+        return isDone && (
+          receiverCity === userLocation || 
+          senderCity === userLocation
         );
-      }else { // history
-        // return flight.isCompleted && flight.isPostFlightChecklistCompleted && flight.isPreFlightChecklistCompleted;
-        return shipment.deliveryDetails.isDone
       }
     });
-
+  
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       tabFiltered = tabFiltered.filter(shipment =>
-        shipment.assignedAWBNumbers.toLowerCase().includes(query)
+        shipment.assignedAWBNumbers?.toLowerCase().includes(query)
       );
     }
-
+  
     return tabFiltered.sort((a, b) =>
       new Date(b.TS_created).getTime() - new Date(a.TS_created).getTime()
     );
-  }, [shipments, activeTab, searchQuery]);
+  }, [shipments, activeTab, searchQuery, user?.location]);
 
 
 
@@ -365,7 +370,7 @@ const Parcels: React.FC = () => {
         showsVerticalScrollIndicator={false}
 
       >
-        {shipments.map((shipment) => <ShipmentCard key={shipment.assignedAWBNumbers} shipment={shipment} router={router} />)}
+        {filteredFlights.map((shipment) => <ShipmentCard key={shipment.assignedAWBNumbers} shipment={shipment} router={router} tab={activeTab} />)}
       </ScrollView>
     );
   };

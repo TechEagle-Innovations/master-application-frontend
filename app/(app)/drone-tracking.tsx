@@ -12,8 +12,6 @@ import ParcelValidationModal from '@/components/ParcelValidationModal';
 import ValidationSuccessModal from '@/components/ValidationSuccessModal';
 import { isAtDelivery, haversineDistance } from '@/utils/droneUtils';
 
-// Update to your backend URL if needed
-
 const DroneTracking = () => {
   // All hooks and state at the top
   const router = useRouter();
@@ -43,7 +41,7 @@ const DroneTracking = () => {
 
   // Timeout for loading state (10 seconds)
   useEffect(() => {
-    if (connectionStatus == 'error') {
+    if (connectionStatus === 'error') {
       setTimeout(() => {
         router.replace({ pathname: '/(app)/dashboard', params: { message: 'Please Connect Drone First', type: connectionStatus } });
       }, 200);
@@ -64,7 +62,7 @@ const DroneTracking = () => {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [connectionStatus, drone]);
+  }, [connectionStatus, drone, router]);
 
   // Validate flightId
   useEffect(() => {
@@ -80,9 +78,9 @@ const DroneTracking = () => {
     }
   }, [drone]);
 
-  // Markers
-  const origin = route[0];
-  const destination = route[route.length - 1];
+  // Safe access to route points
+  const origin = route && route.length > 0 ? route[0] : null;
+  const destination = route && route.length > 1 ? route[route.length - 1] : null;
   const dronePos = drone && typeof drone.lat === 'number' && typeof drone.long === 'number' ? { latitude: drone.lat, longitude: drone.long } : undefined;
 
   // Debug: Log route
@@ -103,10 +101,11 @@ const DroneTracking = () => {
     : (typeof drone?.yaw === 'number' ? drone.yaw
       : undefined);
   // Fallback: calculate heading from last two route points if not present
-  if (droneHeading === undefined && route.length > 1) {
+  if (droneHeading === undefined && route && route.length > 1) {
     const prev = route[route.length - 2];
     const curr = route[route.length - 1];
-    if (prev && curr) {
+    if (prev && curr && typeof prev.longitude === 'number' && typeof prev.latitude === 'number' && 
+        typeof curr.longitude === 'number' && typeof curr.latitude === 'number') {
       const toRad = (deg: number) => deg * Math.PI / 180;
       const toDeg = (rad: number) => rad * 180 / Math.PI;
       const dLon = toRad(curr.longitude - prev.longitude);
@@ -139,12 +138,12 @@ const DroneTracking = () => {
     if (
       drone &&
       drone.arm_status === false &&
-      isAtDelivery(drone, destination) &&
-      !showParcelValidation &&
-      !showSuccess &&
-      !hasValidated
+      destination &&
+      isAtDelivery(drone, destination) 
+     
     ) {
-      setShowParcelValidation(true);
+      // setShowParcelValidation(true);
+      router.push({pathname:"/(app)/post-parcel-validate"})
     }
   }, [drone, destination, showParcelValidation, showSuccess, hasValidated]);
 
@@ -240,6 +239,14 @@ const DroneTracking = () => {
 
   const deliveryOptions = ['Delivered', 'Not Delivered'];
 
+  // Safe initial region calculation
+  const initialRegion = {
+    latitude: drone.lat || 0,
+    longitude: drone.long || 0,
+    latitudeDelta: 0.01,
+    longitudeDelta: 0.01,
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-white" style={{ paddingBottom: insets.bottom }}>
       {/* Header */}
@@ -249,15 +256,10 @@ const DroneTracking = () => {
         <MapView
           ref={mapRef}
           style={{ flex: 1, borderRadius: 0 }}
-          initialRegion={{
-            latitude: drone.lat,
-            longitude: drone.long,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-          }}
+          initialRegion={initialRegion}
           region={followDrone ? {
-            latitude: drone.lat,
-            longitude: drone.long,
+            latitude: drone.lat || 0,
+            longitude: drone.long || 0,
             latitudeDelta: 0.01,
             longitudeDelta: 0.01,
           } : lastRegion}
@@ -271,24 +273,22 @@ const DroneTracking = () => {
           mapType={mapType}
         >
           {/* Route Polyline */}
-          {route.length > 1 && (
+          {route && route.length > 1 && (
             <Polyline
               coordinates={route}
               strokeColor="#2962ff"
               strokeWidth={3}
-            // lineDashPhase={[10, 10]}
-            // lineDashPattern={[8, 8]}
             />
           )}
           {/* Origin Marker (Takeoff) */}
-          {route.length > 0 && (
-            <Marker coordinate={{ latitude: route[0].latitude, longitude: route[0].longitude }} anchor={{ x: 0.5, y: 0.5 }}>
+          {origin && (
+            <Marker coordinate={{ latitude: origin.latitude, longitude: origin.longitude }} anchor={{ x: 0.5, y: 0.5 }}>
               <View className="w-6 h-6 rounded-full border-4 border-blue-500 bg-white" />
             </Marker>
           )}
           {/* Destination Marker (Landing) */}
-          {route.length > 1 && (
-            <Marker coordinate={{ latitude: route[route.length - 1].latitude, longitude: route[route.length - 1].longitude }} anchor={{ x: 0.5, y: 0.5 }}>
+          {destination && (
+            <Marker coordinate={{ latitude: destination.latitude, longitude: destination.longitude }} anchor={{ x: 0.5, y: 0.5 }}>
               <View className="w-6 h-6 rounded-full border-4 border-green-500 bg-white" />
             </Marker>
           )}
@@ -370,10 +370,8 @@ const DroneTracking = () => {
                 {/* Live Drone Icon on Progress Bar */}
                 {(() => {
                   let progress = 0;
-                  if (route.length > 1 && drone.lat && drone.long) {
-                    const origin = route[0];
-                    const dest = route[route.length - 1];
-                    const totalDist = haversineDistance(origin.latitude, origin.longitude, dest.latitude, dest.longitude);
+                  if (route && route.length > 1 && drone.lat && drone.long && origin && destination) {
+                    const totalDist = haversineDistance(origin.latitude, origin.longitude, destination.latitude, destination.longitude);
                     const currDist = haversineDistance(origin.latitude, origin.longitude, drone.lat, drone.long);
                     progress = totalDist > 0 ? currDist / totalDist : 0;
                   }
@@ -401,9 +399,9 @@ const DroneTracking = () => {
 
             {/* Origin, ETA, Destination */}
             <View className="flex-row items-center">
-              <Text className="flex-1 text-gray-600 text-sm">{route[0]?.name || 'Central Hub'}</Text>
+              <Text className="flex-1 text-gray-600 text-sm">{origin?.name || 'Central Hub'}</Text>
               <Text className="font-bold text-base text-gray-800 mx-2">ETA: {drone.eta ?? '--'} min</Text>
-              <Text className="flex-1 text-gray-600 text-sm text-right">{route[route.length - 1]?.name || 'Retail Store'}</Text>
+              <Text className="flex-1 text-gray-600 text-sm text-right">{destination?.name || 'Retail Store'}</Text>
             </View>
           </View>
 

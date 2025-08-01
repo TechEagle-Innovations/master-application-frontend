@@ -329,7 +329,7 @@ const maintenanceData: Maintenance[] = [
 interface ShipmentContextProps {
     shipments: Shipment[];
     shipment: Shipment | null;
-    selectedFLight: Flight | null;
+    selectedFlight: Flight | null;
     setShipment: (shipment: Shipment | null) => void;
     maintenanceRecords: Maintenance[];
     maintenance: Maintenance | null;
@@ -337,6 +337,12 @@ interface ShipmentContextProps {
     setShipments: (shipments: Shipment[]) => void;
     setSelectedFlight: (flight: Flight) => void;
     setMaintenanceRecords: (records: Maintenance[]) => void;
+    parcelvalidate: boolean;
+    setParcelvalidate: (validate: boolean) => void;
+    connected: boolean;
+    setConnected: (connected: boolean) => void;
+    isBatterConnected: boolean;
+    setIsBatteryConnected: (isBatterConnected: boolean) => void;
 }
 
 const ShipmentContext = createContext<ShipmentContextProps | undefined>(undefined);
@@ -346,10 +352,12 @@ export const ShipmentProvider = ({ children }: { children: ReactNode }) => {
     const [shipments, setShipments] = useState<Shipment[]>(shipmentData);
     const [maintenance, setMaintenance] = useState<Maintenance | null>(null);
     const [maintenanceRecords, setMaintenanceRecords] = useState<Maintenance[]>(maintenanceData);
-    const [selectedFLight, setSelectedFlight]=useState<Flight | null >(null);
-
+    const [selectedFlight, setSelectedFlight]=useState<Flight | null >(null);
+    const [parcelvalidate, setParcelvalidate] = useState<boolean>(false);
+    const [connected, setConnected] = useState(false);
+    const [isBatterConnected, setIsBatteryConnected]=useState<boolean>(false);
     return (
-        <ShipmentContext.Provider value={{ shipments, shipment, setShipment, maintenanceRecords, maintenance, setMaintenance, setShipments, setMaintenanceRecords, selectedFLight, setSelectedFlight }}>
+        <ShipmentContext.Provider value={{ shipments, shipment, setShipment, maintenanceRecords, maintenance, setMaintenance, setShipments, setMaintenanceRecords, selectedFlight, setSelectedFlight, parcelvalidate, setParcelvalidate, connected, setConnected, isBatterConnected, setIsBatteryConnected }}>
             {children}
         </ShipmentContext.Provider>
     );
