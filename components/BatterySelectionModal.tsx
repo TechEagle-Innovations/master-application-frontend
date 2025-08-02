@@ -42,7 +42,7 @@ const BatterySelectionModal: React.FC<BatterySelectionModalProps> = ({
                 let batteryData: any = await batteryService.getBatteries() as Battery[];
 
                 // Filter out discarded batteries
-                batteryData = batteryData.filter((b: Battery) => b.charged_status !== "dicarded");
+                batteryData = batteryData.filter((b: Battery) => b.charged_status !== "discarded");
 
                 // Validate battery data
                 if (!Array.isArray(batteryData)) {

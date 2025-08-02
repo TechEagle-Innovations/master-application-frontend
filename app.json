@@ -18,7 +18,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.dnyaneshwarsuryawanshi.masterapplicationfrontend",
       "config": {
-        "googleMapsApiKey": "AIzaSyAx6YgwOvCk_UZOTMnG7GpUCA0gaHYyNo4"
+        "googleMapsApiKey": ""
       }
     },
     "android": {
@@ -29,7 +29,7 @@
       "package": "com.dnyaneshwarsuryawanshi.masterapplicationfrontend",
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyAx6YgwOvCk_UZOTMnG7GpUCA0gaHYyNo4"
+          "apiKey": ""
         }
       },
       "permissions": [

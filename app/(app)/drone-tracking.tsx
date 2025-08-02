@@ -139,11 +139,12 @@ const DroneTracking = () => {
       drone &&
       drone.arm_status === false &&
       destination &&
-      isAtDelivery(drone, destination) 
-     
+      isAtDelivery(drone, destination) &&
+      !showParcelValidation &&
+      !showSuccess &&
+      !hasValidated
     ) {
-      // setShowParcelValidation(true);
-      router.push({pathname:"/(app)/post-parcel-validate"})
+      setShowParcelValidation(true);
     }
   }, [drone, destination, showParcelValidation, showSuccess, hasValidated]);
 

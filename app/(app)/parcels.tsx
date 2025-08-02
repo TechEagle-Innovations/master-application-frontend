@@ -366,7 +366,9 @@ const Parcels: React.FC = () => {
     return (
       <ScrollView
         className="flex-1 px-4"
-        contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+        contentContainerStyle={{ 
+          paddingBottom: layout.bottomNavHeight + 20 
+        }}
         showsVerticalScrollIndicator={false}
 
       >
@@ -392,7 +394,7 @@ const Parcels: React.FC = () => {
         <View>
           <Text className="text-3xl font-bold text-gray-800">Parcels</Text>
 
-          <Text className="text-gray-600 mt-6">Manager Inbound and Outbound Parcels</Text>
+          <Text className="text-gray-600 mt-6">Manage Inbound and Outbound Parcels</Text>
         </View>
         <TouchableOpacity onPress={() => setMenuVisible(true)}>
           <Bars3Icon size={30} color="black" />

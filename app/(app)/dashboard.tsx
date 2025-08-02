@@ -1323,7 +1323,7 @@
 // //   );
 // // } 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { ScrollView, Text, View, TouchableOpacity, TextInput, Alert, ViewStyle, Dimensions, Platform } from 'react-native';
+import { ScrollView, Text, View, TouchableOpacity, TextInput, Alert, ViewStyle, Dimensions, Platform} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../utils/auth/AuthContext';
 import { Bars3Icon, MagnifyingGlassIcon } from 'react-native-heroicons/outline';
@@ -1396,7 +1396,7 @@ const FlightCard: React.FC<FlightCardProps> = React.memo(({ flight, onPress, use
       </View>
       <View className="mt-2 flex-row justify-between items-center">
         <Text className="text-gray-500">{formattedDate} at {formattedTime}</Text>
-        <Text className="text-gray-500 text-base">{flight.drone_id}</Text>
+        <Text className="text-gray-500 text-base">{flight.drone_id.slice(0, 6)}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -1628,6 +1628,7 @@ const FlightDashboard: React.FC = () => {
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
+      console.log(query);
       tabFiltered = tabFiltered.filter(flight =>
         flight.localFlightId?.toLowerCase().includes(query) ||
         flight.start_location?.toLowerCase().includes(query) ||
@@ -1653,11 +1654,6 @@ const FlightDashboard: React.FC = () => {
         pathname: '/(app)/flight-detail',
         params: {
           flightId: flight._id,
-          // localFlightId: flight.localFlightId,
-          // droneId: flight.drone_id,
-          // from: flight.start_location,
-          // to: flight.end_location,
-          // eta: flight.time_taken,
           tab: 'ongoing'
         }
       });
@@ -1706,11 +1702,13 @@ const FlightDashboard: React.FC = () => {
     }
 
     return (
+      
       <ScrollView
         className="flex-1 px-4"
-        contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+        contentContainerStyle={{ 
+          paddingBottom: layout.bottomNavHeight + 20 // Add extra 20 for visual comfort
+        }}
         showsVerticalScrollIndicator={false}
-
       >
         {activeTab == "scheduled" ? filteredFlights.map((flight) => (
           <FlightCard

@@ -26,7 +26,7 @@ const mockDrone: Drone = {
     lastMaintenance: 'Oct 15, 2023',
 };
 
-function DroneStats({ totalFlights, lastMaintenance, handleMaintainanceClick }: { totalFlights: number; lastMaintenance: string, handleMaintainanceClick:()=>void }) {
+function DroneStats({ totalFlights, lastMaintenance, handleMaintainanceClick }: { totalFlights: number; lastMaintenance: string, handleMaintainanceClick: () => void }) {
     return (
         <View className="flex-row justify-around mb-6 px-2">
             <View className="items-center bg-gray-50 rounded-xl p-4 flex-1 mx-2 shadow-sm">
@@ -37,7 +37,7 @@ function DroneStats({ totalFlights, lastMaintenance, handleMaintainanceClick }: 
                 <Text className="text-gray-500 mt-1">Total Flights</Text>
             </View>
             <TouchableOpacity className="items-center bg-gray-50 rounded-xl p-4 flex-1 mx-2 shadow-sm"
-             onPress={()=>handleMaintainanceClick()}
+                onPress={() => handleMaintainanceClick()}
             >
                 <View className='flex-row gap-4 justify-center items-center'>
                     <CalendarDays size={22} color="#ea580c" />
@@ -191,15 +191,23 @@ function DroneFooterActions({ assigned, bottomInset, droneId, router }: { assign
                     <Text className="text-white text-lg font-semibold">Run Pre-Flight Checklist</Text>
                 </TouchableOpacity>
             )} */}
-
             <TouchableOpacity
-                className="bg-gray-100 rounded-xl py-4 items-center"
+                className="bg-gray-100 rounded-xl py-4 items-center mb-3"
+                onPress={() => router.push({
+                    pathname: '/(app)/maintainance-survey',
+                    params: { id: droneId }
+                })}
+            >
+                <Text className="text-gray-800 text-lg font-semibold">Manintance Survey</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+                className="bg-primary rounded-xl py-4 items-center"
                 onPress={() => router.push({
                     pathname: '/(app)/report-issue',
                     params: { id: droneId }
                 })}
             >
-                <Text className="text-gray-800 text-lg font-semibold">Report an Issue</Text>
+                <Text className="text-white text-lg font-semibold">Report an Issue</Text>
             </TouchableOpacity>
         </View>
     );

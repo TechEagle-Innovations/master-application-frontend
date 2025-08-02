@@ -7,6 +7,7 @@ import { CalendarIcon, EnvelopeIcon, PhoneIcon, MapPinIcon } from 'react-native-
 import Header from '@/components/Header';
 import { authService } from '@/utils/api/services/AuthService';
 import { useAuth } from '@/utils/auth/AuthContext';
+import { locationIdToNameMap } from '@/utils/api/config';
 
 const userProfile = {
   userName: 'John Anderson',
@@ -92,7 +93,7 @@ export default function ProfileScreen() {
         })} />
         <InfoRow icon={<EnvelopeIcon size={22} color="#9ca3af" />} label="Email Address" value={profile.useremail} />
         <InfoRow icon={<PhoneIcon size={22} color="#9ca3af" />} label="Phone Number" value={profile.phone_no} />
-        <InfoRow icon={<MapPinIcon size={22} color="#9ca3af" />} label="Location" value={profile.location} />
+        <InfoRow icon={<MapPinIcon size={22} color="#9ca3af" />} label="Location" value={locationIdToNameMap[profile.location as keyof typeof locationIdToNameMap]} />
       </View>
     </View>
   );

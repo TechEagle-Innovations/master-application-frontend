@@ -4,8 +4,9 @@ import { View, Text, TouchableOpacity, SafeAreaView, TouchableWithoutFeedback, S
 import { UserCircleIcon, ChevronDownIcon, ChevronUpIcon } from 'react-native-heroicons/solid';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Logout from "@/assets/images/logout.svg";
-import Battery from "@/assets/images/battery.svg";
-import Help from "@/assets/images/help.svg";
+import Assets from "@/assets/images/assets.svg";
+import BatteryIcon from "@/assets/images/battery-icon.svg";
+import Drone from "@/assets/images/drone.svg";
 import { useRouter } from 'expo-router';
 
 interface HamburgerMenuProps {
@@ -146,7 +147,7 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isVisible, onClose }) => 
                     accessibilityState={{ expanded: assetsExpanded }}
                   >
                     <View className="flex-row items-center">
-                      <Battery size={24} color="black" />
+                      <Assets size={24} color="black" />
                       <Text className="ml-3 text-lg">Assets</Text>
                     </View>
                     {assetsExpanded ? (
@@ -164,15 +165,17 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isVisible, onClose }) => 
                         accessibilityRole="button"
                         accessibilityLabel="Batteries"
                       >
-                        <Text className="text-lg">Batteries</Text>
+                        <BatteryIcon size={24} color="black" />
+                        <Text className="text-lg ml-3">Batteries</Text>
                       </TouchableOpacity>
                       <TouchableOpacity 
-                        className="flex-row items-center p-4 active:bg-gray-100"
+                        className="flex-row items-center p-4 active:bg-gray-100 "
                         onPress={() => handleNavigate('/(app)/drones')}
                         accessibilityRole="button"
                         accessibilityLabel="Drones"
                       >
-                        <Text className="text-lg">Drones</Text>
+                         <Drone size={24} color="black" />
+                        <Text className="text-lg ml-3">Drones</Text>
                       </TouchableOpacity>
                     </View>
                   )}
