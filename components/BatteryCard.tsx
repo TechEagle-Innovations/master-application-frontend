@@ -17,7 +17,8 @@ function getStatusInfo(status?: string) {
   if (status === 'charged') return { text: 'Charged', color: '#22C55E' };
   if (status === 'discharged') return { text: 'Discharged', color: '#EF4444' };
   if (status === 'charging') return { text: 'Charging', color: '#F59E42' };
-  return { text: '-', color: '#888' };
+  if(status==="active") return { text: 'Engaged', color: '#0873EA' }
+  return { text: 'Discarded', color: '#EF4444' };
 }
 
 const BatteryCard: React.FC<BatteryCardProps> = ({ battery, onPress }) => {

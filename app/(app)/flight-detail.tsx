@@ -1,20 +1,25 @@
-import { View, Text, ScrollView, SafeAreaView, TouchableOpacity, Alert } from 'react-native'
-import React, { useDebugValue, useEffect, useState } from 'react'
+import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native'
+import React, { useState } from 'react'
 import { useShipment } from '@/utils/ShipmentContext'
 import Header from '@/components/Header'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { ChevronLeft } from 'lucide-react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useAuth } from '@/utils/auth/AuthContext'
 import { CLEARSKY_URL, locationIdToNameMap } from '@/utils/api/config'
 import ConnectDroneModal from '@/components/connnect-drone-modal'
 import BatterySelectionModal from '@/components/BatterySelectionModal'
 import { flightService } from '@/utils/api/services/FlightService'
-import { batteryService } from '@/utils/api/services/BatteryService'
 import type { Battery } from '@/utils/api/services/BatteryService'
 
 const FlightDetails = () => {
-    const { selectedFlight, parcelvalidate, connected, setConnected, isBatterConnected, setIsBatteryConnected } = useShipment();
+    const {
+        selectedFlight = null,
+        parcelvalidate = false,
+        connected = false,
+        setConnected = () => {},
+        isBatterConnected = false,
+        setIsBatteryConnected = () => {}
+    } = useShipment() || {}; // Provide empty fallback object
     const insets = useSafeAreaInsets();
     const router = useRouter();
     const { flightId, tab } = useLocalSearchParams();
@@ -26,8 +31,8 @@ const FlightDetails = () => {
     const [connectError, setConnectError] = useState('');
 
     const [selectedBatteries, setSelectedBatteries] = useState<Battery[]>([]);
-    const [pageLoading, setPageLoading] = useState(false);
-console.log(selectedFlight);
+    // const [pageLoading, setPageLoading] = useState(false);
+
     const handleConnect = async () => {
         setConnectLoading(true);
         setConnectError('');
@@ -91,21 +96,21 @@ console.log(selectedFlight);
         }
     };
 
-        const handleBatterySelection = async (selectedBatteries: Battery[]) => {
+    const handleBatterySelection = async (selectedBatteries: Battery[]) => {
         try {
             console.log('Selected batteries:', selectedBatteries);
-            
+
             setSelectedBatteries(selectedBatteries);
             setIsBatteryConnected(true);
             setShowBatteryModal(false);
-            
+
         } catch (error) {
             console.error('Battery connection error:', error);
             Alert.alert('Error', 'Failed to connect batteries. Please try again.');
         }
     };
 
-  
+
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -166,27 +171,29 @@ console.log(selectedFlight);
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-gray-50">
+        <View className="flex-1 bg-gray-50">
             {/* Header */}
-            <View className="flex-row items-center px-4 py-3 bg-white border-b border-gray-100">
+            {/* <View className="flex-row items-center px-4 py-3 bg-white border-b border-gray-100">
                 <TouchableOpacity onPress={router.back} className="p-2">
                     <ChevronLeft size={24} color="#000" />
                 </TouchableOpacity>
                 <Text className="flex-1 text-center text-lg font-semibold text-gray-800 mr-10">
                     {flightData.flightId}
                 </Text>
-            </View>
-
+            </View> */}
+            <Header insets={insets} text={selectedFlight?.localFlightId} />
             {/* Battery Connection Status */}
             {selectedBatteries.length > 0 && (
                 <View className="bg-green-50 border-l-4 border-green-400 p-3 mx-4 mt-2 rounded-r-lg">
                     <Text className="text-green-800 font-medium">
-                        ✓ {selectedBatteries.length} battery{selectedBatteries.length > 1 ? 'ies' : 'y'} connected
+                        {String.fromCharCode(10003)} {selectedBatteries.length} battery{selectedBatteries.length !== 1 ? 'ies' : 'y'} connected
                     </Text>
                 </View>
             )}
-
-            <ScrollView className="flex-1 px-4 py-4" showsVerticalScrollIndicator={false}>
+            <ScrollView className="flex-1 px-4 py-4" showsVerticalScrollIndicator={false}
+                contentContainerStyle={{
+                    paddingBottom: 180 // Increased padding to account for footer height
+                }}>
                 {/* Location Details Card */}
                 <View className="bg-white rounded-lg p-4 mb-4 shadow-sm">
                     {/* Pickup Location */}
@@ -310,7 +317,10 @@ console.log(selectedFlight);
             </ScrollView>
             <View
                 className="absolute left-0 right-0 bottom-0 bg-white px-5 pb-5"
-                style={{ paddingBottom: insets.bottom + 20 }}
+                style={{
+                    paddingBottom: insets.bottom + 16, // Add safe area padding
+                    elevation: 5 // Add shadow for better visual separation
+                }}
             >
                 <View className="flex flex-col space-y-3">
                     {/* {<TouchableOpacity
@@ -322,7 +332,7 @@ console.log(selectedFlight);
                         <Text className="text-lg text-black">Discard</Text>
                     </TouchableOpacity>} */}
 
-                    {tab === 'ongoing' && !selectedFlight?.isCompleted && !selectedFlight?.isPostFlightChecklistCompleted && connected && (
+                    {tab === 'ongoing' && !selectedFlight?.isCompleted && connected && (
                         <TouchableOpacity
                             className="w-full rounded-xl py-4 bg-orange-500 items-center"
                             onPress={() =>
@@ -343,9 +353,9 @@ console.log(selectedFlight);
                             <Text className="text-lg text-white">Track Flight</Text>
                         </TouchableOpacity>
                     )}
-                    {tab === 'ongoing' && selectedFlight?.isCompleted && connected && (
+                    {tab === 'ongoing' && selectedFlight?.isCompleted && (
                         <TouchableOpacity
-                            className="w-full rounded-xl py-4 bg-orange-500 items-center mb-2"
+                            className="w-full rounded-xl py-4 bg-orange-500 items-center"
                             onPress={() => router.push('/(app)/postflight-checklist')}
                         >
                             <Text className="text-lg text-white">Run PostFlight Checklist</Text>
@@ -384,7 +394,7 @@ console.log(selectedFlight);
                             </TouchableOpacity>
                         )
                     }
-                    {(tab === 'scheduled' &&  parcelvalidate && connected && !isBatterConnected && !(selectedFlight?.end_location === user?.location) && !selectedFlight?.isPreFlightChecklistCompleted && !selectedFlight?.isCompleted && !selectedFlight?.isAborted && !selectedFlight?.isPostFlightChecklistCompleted) &&
+                    {(tab === 'scheduled' && parcelvalidate && connected && !isBatterConnected && !(selectedFlight?.end_location === user?.location) && !selectedFlight?.isPreFlightChecklistCompleted && !selectedFlight?.isCompleted && !selectedFlight?.isAborted && !selectedFlight?.isPostFlightChecklistCompleted) &&
                         (
                             <TouchableOpacity
                                 className="bg-primary rounded-xl py-4 mb-3 items-center"
@@ -395,7 +405,7 @@ console.log(selectedFlight);
                             </TouchableOpacity>
                         )
                     }
-                    {(tab === 'scheduled' && parcelvalidate &&  connected && isBatterConnected && !(selectedFlight?.end_location === user?.location) && !selectedFlight?.isPreFlightChecklistCompleted && !selectedFlight?.isCompleted && !selectedFlight?.isAborted && !selectedFlight?.isPostFlightChecklistCompleted) &&
+                    {(tab === 'scheduled' && parcelvalidate && connected && isBatterConnected && !(selectedFlight?.end_location === user?.location) && !selectedFlight?.isPreFlightChecklistCompleted && !selectedFlight?.isCompleted && !selectedFlight?.isAborted && !selectedFlight?.isPostFlightChecklistCompleted) &&
                         (
                             <TouchableOpacity
                                 className="bg-primary rounded-xl py-4 mb-3 items-center"
@@ -427,7 +437,7 @@ console.log(selectedFlight);
                 onConfirm={handleBatterySelection}
                 maxBatteries={4} // You can make this dynamic based on drone type
             />
-        </SafeAreaView>
+        </View>
     )
 }
 

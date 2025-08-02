@@ -349,25 +349,49 @@ interface ShipmentContextProps {
     startTime: string | null;
     setStartTime: (time: string | null) => void;
     selectedBattery: BatteryAPI | null;
-    setSelectedBattery: (battery: BatteryAPI | null) => void;
+    setSelectedBattery: (battery: BatteryAPI) => void;
 }
 
 const ShipmentContext = createContext<ShipmentContextProps | undefined>(undefined);
 
 export const ShipmentProvider = ({ children }: { children: ReactNode }) => {
     const [shipment, setShipment] = useState<Shipment | null>(null);
-    const [shipments, setShipments] = useState<Shipment[]>(shipmentData);
+    const [shipments, setShipments] = useState<Shipment[]>([]); // Initialize as empty array
     const [maintenance, setMaintenance] = useState<Maintenance | null>(null);
-    const [maintenanceRecords, setMaintenanceRecords] = useState<Maintenance[]>(maintenanceData);
-    const [selectedFlight, setSelectedFlight]=useState<Flight | null >(null);
+    const [maintenanceRecords, setMaintenanceRecords] = useState<Maintenance[]>([]); // Initialize as empty array
+    const [selectedFlight, setSelectedFlight] = useState<Flight | null>(null);
     const [parcelvalidate, setParcelvalidate] = useState<boolean>(false);
-    const [connected, setConnected] = useState(false);
-    const [isBatterConnected, setIsBatteryConnected]=useState<boolean>(false);
+    const [connected, setConnected] = useState<boolean>(false);
+    const [isBatterConnected, setIsBatteryConnected] = useState<boolean>(false);
     const [startVoltage, setStartVoltage] = useState<number | null>(null);
-      const [startTime, setStartTime] = useState<string | null>(null);
+    const [startTime, setStartTime] = useState<string | null>(null);
     const [selectedBattery, setSelectedBattery] = useState<BatteryAPI | null>(null);
+
     return (
-        <ShipmentContext.Provider value={{ shipments, shipment, setShipment, maintenanceRecords, maintenance, setMaintenance, setShipments, setMaintenanceRecords, selectedFlight, setSelectedFlight, parcelvalidate, setParcelvalidate, connected, setConnected, isBatterConnected, setIsBatteryConnected, startVoltage, setStartVoltage, startTime, setStartTime, selectedBattery, setSelectedBattery }}>
+        <ShipmentContext.Provider value={{
+            shipments,
+            shipment,
+            setShipment,
+            maintenanceRecords,
+            maintenance,
+            setMaintenance,
+            setShipments,
+            setMaintenanceRecords,
+            selectedFlight,
+            setSelectedFlight,
+            parcelvalidate,
+            setParcelvalidate,
+            connected,
+            setConnected,
+            isBatterConnected,
+            setIsBatteryConnected,
+            startVoltage,
+            setStartVoltage,
+            startTime,
+            setStartTime,
+            selectedBattery,
+            setSelectedBattery
+        }}>
             {children}
         </ShipmentContext.Provider>
     );

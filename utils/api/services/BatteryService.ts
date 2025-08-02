@@ -11,9 +11,10 @@ export interface Battery {
     battery_id: string;
     battery_type: 'li-ion' | 'li-po' | string; 
     image: string;
-    charged_status: 'charged' | 'discharged' | 'dicarded' | 'charging' ; 
+    charged_status: 'charged' | 'discharged' | 'discarded' | 'charging' | "Engaged" ; 
     locationId: string;
     hubId: string;
+    isDiscarded:boolean;
     created_by: string;
     cycle_count: number;
     curr_max_vdiff: number;
@@ -53,6 +54,7 @@ interface stopChargingData {
   "monitor_by": string | undefined
 
 }
+
 
 class BatteryService extends BaseService {
     private static instance: BatteryService;

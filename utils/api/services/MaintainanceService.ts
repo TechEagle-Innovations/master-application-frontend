@@ -11,6 +11,28 @@ export interface ReportIssue {
     priority: string
 }
 
+// types/droneImagesAI.ts
+
+export type DefectClassName =
+  | "crack"
+  | "dent"
+  | "paint-off"
+  | "scratch"
+  | "missing-head";
+
+export interface ImagePart {
+  url: string;
+  defectClassName: DefectClassName;
+}
+
+export interface DroneImagesAI {
+  _id?: string; 
+  droneId: string;
+  imageParts: Record<string, ImagePart>; 
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 class MaintainanceService extends BaseService {
     
     private static instance: MaintainanceService;
@@ -32,6 +54,10 @@ class MaintainanceService extends BaseService {
 
     async getMaintenanceRecords() {
         return this.get('/');
+    }
+     
+    async droneMaintenanceSurvey(data: DroneImagesAI) {
+        return this.post('/drone-images-ai', data);
     }
     // Add more drone-related methods here as needed
 }

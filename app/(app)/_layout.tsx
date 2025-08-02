@@ -151,6 +151,12 @@ export default function AppLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="maintainance-survey"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

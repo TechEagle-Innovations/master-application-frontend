@@ -8,13 +8,26 @@ import { authService } from '@/utils/api/services/AuthService';
 import { useAuth } from '@/utils/auth/AuthContext';
 import authNavigation from '@/utils/auth/navigation';
 import { useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { 
+  KeyboardAvoidingView, 
+  Platform, 
+  Text, 
+  TouchableOpacity, 
+  View, 
+  ScrollView,
+  StyleSheet,
+  Dimensions 
+} from 'react-native';
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface ApiError {
   message: string;
 }
 
 export default function Login() {
+  const insets = useSafeAreaInsets();
+  const windowHeight = Dimensions.get('window').height;
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,14 +40,10 @@ export default function Login() {
     try {
       setLoading(true);
       setError(null);
-      // console.log('Attempting login with email:', email);
       const response = await authService.login({ email, password });
-      // console.log('Login successful, response:', { ...response});
       await authLogin(response);
-      // console.log('Auth context updated successfully');
     } catch (error) {
       console.error('Login failed:', error);
-      // handleLoginError(error);
       setError(error.message);
     } finally {
       setLoading(false);
@@ -63,65 +72,103 @@ export default function Login() {
     return true;
   };
 
-  // const handleLoginError = (error: unknown) => {
-  //   if (error instanceof Error) {
-  //     setError(error.message);
-  //   } else if (typeof error === 'object' && error !== null && 'message' in error) {
-  //     setError((error as ApiError).message);
-  //   } else {
-  //     setError(ERROR_MESSAGES.GENERIC_ERROR);
-  //   }
-  // };
-
   return (
-    <View className="flex-1 bg-white p-7 justify-center pb-28">
-      <View className="items-center mb-20">
-        <Logo width={161} height={41} />
-      </View>
-
-      <View className="space-y-4">
-        
-        <EmailInput
-          label="Email"
-          value={email}
-          onChangeText={(text: string) => {
-            setEmail(text);
-            setError(null);
-          }}
-          placeholder="Enter your email"
-        />
-
-        <PasswordInput
-          label="Password"
-          value={password}
-          onChangeText={(text: string) => {
-            setPassword(text);
-            setError(null);
-          }}
-          placeholder="Enter your password"
-        />
-
-        <Button 
-          loading={loading} 
-          actionFunction={handleLogin} 
-          buttonText="Login" 
-          buttonTextLoading="Logging in..." 
-        />
-
-        <TouchableOpacity
-          onPress={authNavigation.goToForgotPassword}
-          className="mt-4"
-        >
-          <Text className="text-center text-base">
-            Forgot Password?
-          </Text>
-          {error && (
-          <View className="mb-4">
-            <Error error={error} />
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? -insets.bottom : 0}
+    >
+      <ScrollView 
+        contentContainerStyle={[
+          styles.scrollContainer, 
+          { minHeight: windowHeight - insets.top - insets.bottom }
+        ]}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.content}>
+          <View style={styles.logoContainer}>
+            <Logo width={161} height={41} />
           </View>
-        )}
-        </TouchableOpacity>
-      </View>
-    </View>
+
+          <View style={styles.formContainer}>
+            <EmailInput
+              label="Email"
+              value={email}
+              onChangeText={(text: string) => {
+                setEmail(text);
+                setError(null);
+              }}
+              placeholder="Enter your email"
+            />
+
+            <PasswordInput
+              label="Password"
+              value={password}
+              onChangeText={(text: string) => {
+                setPassword(text);
+                setError(null);
+              }}
+              placeholder="Enter your password"
+            />
+
+            {error && (
+              <View style={styles.errorContainer}>
+                <Error error={error} />
+              </View>
+            )}
+
+            <Button 
+              loading={loading} 
+              actionFunction={handleLogin} 
+              buttonText="Login" 
+              buttonTextLoading="Logging in..." 
+            />
+
+            <TouchableOpacity
+              onPress={authNavigation.goToForgotPassword}
+              style={styles.forgotPassword}
+            >
+              <Text style={styles.forgotPasswordText}>
+                Forgot Password?
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
-} 
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingBottom: 50, // Extra space at bottom for keyboard
+  },
+  content: {
+    paddingHorizontal: 28,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: Dimensions.get('window').height * 0.1, // 10% of screen height
+  },
+  formContainer: {
+    width: '100%',
+    gap: 16,
+  },
+  errorContainer: {
+    marginBottom: 8,
+  },
+  forgotPassword: {
+    marginTop: 8,
+  },
+  forgotPasswordText: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#000',
+  },
+});

@@ -1,3 +1,4 @@
+import { locationIdToNameMap } from '@/utils/api/config';
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { MapPinIcon } from 'react-native-heroicons/outline';
@@ -21,7 +22,7 @@ const DroneCard: React.FC<DroneCardProps> = ({ id, location, lastMaintainance, s
       </View>
       <View className="flex-row items-center mb-1">
         <MapPinIcon size={16} color="gray" />
-        <Text className="text-gray-600 ml-1">{location}</Text>
+        <Text className="text-gray-600 ml-1">{locationIdToNameMap[location as keyof typeof locationIdToNameMap]}</Text>
       </View>
       <Text className="text-gray-500 text-sm">Last Maintanance: {lastMaintainance}</Text>
     </TouchableOpacity>

@@ -1,20 +1,19 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRootNavigationState, useRouter } from 'expo-router';
-import { ChevronLeft } from 'lucide-react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { CheckCircle2 } from 'lucide-react-native';
-import { Picker } from '@react-native-picker/picker';
 import { useShipment } from '../../utils/ShipmentContext';
+import Header from '@/components/Header';
 
 // Static mock data for demonstration
 
-const STATUS_OPTIONS = [
-    { label: 'Select Status', value: '' },
-    { label: 'In Transit', value: 'in_transit' },
-    { label: 'Delivered', value: 'delivered' },
-    { label: 'Delayed', value: 'delayed' },
-];
+// const STATUS_OPTIONS = [
+//     { label: 'Select Status', value: '' },
+//     { label: 'In Transit', value: 'in_transit' },
+//     { label: 'Delivered', value: 'delivered' },
+//     { label: 'Delayed', value: 'delayed' },
+// ];
 
 // function getShipmentById(id?: string) {
 //   return SHIPMENT_DATA.find(s => s.id === id) || SHIPMENT_DATA[0];
@@ -92,17 +91,8 @@ export default function ShipmentDetail() {
     return (
         <View className="flex-1 bg-white">
             {/* Header */}
-            <View
-                className="flex-row items-center px-4 bg-white"
-                style={{ paddingTop: insets.top, minHeight: 56 + insets.top }}
-            >
-                <TouchableOpacity onPress={router.back} className="p-2" accessibilityRole="button" accessibilityLabel="Go back">
-                    <ChevronLeft size={24} color="#000" />
-                </TouchableOpacity>
-                <Text className="flex-1 text-center text-xl  mr-10">
-                    Shipment #{shipment.assignedAWBNumbers || 'N/A'}
-                </Text>
-            </View>
+        
+            <Header insets={insets} text={shipment.assignedAWBNumbers}/>
             <ScrollView
                 contentContainerStyle={{ paddingBottom: 120 + insets.bottom, paddingHorizontal: 16 }}
                 showsVerticalScrollIndicator={false}

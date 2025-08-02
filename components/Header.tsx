@@ -4,7 +4,7 @@ import { ChevronLeft } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { EdgeInsets } from 'react-native-safe-area-context';
 
-const Header = ({text, insets}:{text: string, insets:EdgeInsets}) => {
+const Header = ({text, insets}:{text: string | undefined, insets:EdgeInsets}) => {
     const router = useRouter();
   return (
     <View className="flex-row items-center px-4 mt-2 bg-white border-b border-gray-100" style={{ paddingTop: insets.top, minHeight: 56 + insets.top }}>
