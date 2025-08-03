@@ -9,64 +9,54 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialIcons } from '@expo/vector-icons';
-import { DroneImagesAI } from '@/utils/api/services/MaintainanceService';
-import Header from '@/components/Header';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Picker } from '@react-native-picker/picker';
+import { useImageUpload } from '@/hooks/useImageUpload';
+import { router, useLocalSearchParams } from 'expo-router';
+import Header from '@/components/Header';
+import * as FileSystem from 'expo-file-system';
+import { maintainanceService } from '@/utils/api/services/MaintainanceService';
 
-export type DefectClassName =
-  | "crack"
-  | "dent"
-  | "paint-off"
-  | "scratch"
-  | "missing-head";
-
-interface ImagePart {
-  url: string;
-  defectClassName: DefectClassName;
-}
+type DefectClassName = 'crack' | 'dent' | 'paint-off' | 'scratch' | 'missing-head';
 
 interface SurveyItem {
   id: string;
-  issueType: string;
-  issue: string;
-  bodyPartName: string;
   bodyPart: string;
-  image: ImagePart | null;
+  defectClassName: DefectClassName;
+  imageUrl: string | null;
 }
 
-const issueTypes = ["Structural", "Cosmetic", "Functional"];
-const issues: Record<string, string[]> = {
-  "Structural": ["Crack", "Dent", "Missing Part"],
-  "Cosmetic": ["Paint Off", "Scratch", "Discoloration"],
-  "Functional": ["Loose Part", "Non-functional", "Misaligned"]
-};
-const bodyParts = ["Head", "Arm", "Leg", "Body", "Tail"];
+const bodyParts = ["attached_part", "body_fuselage", "left_wing", "right_wing", "propeller", "tail", "VTOL_arm"];
+const defectClasses: DefectClassName[] = ['crack', 'dent', 'paint-off', 'scratch', 'missing-head'];
 
 const MaintenanceSurvey: React.FC = () => {
   const insets = useSafeAreaInsets();
+  const { uploadImage } = useImageUpload();
+  const params = useLocalSearchParams();
+
   const [surveyItems, setSurveyItems] = useState<SurveyItem[]>([
     {
       id: Date.now().toString(),
-      issueType: "",
-      issue: "",
-      bodyPartName: "",
-      bodyPart: "",
-      image: null
-    }
+      bodyPart: '',
+      defectClassName: 'scratch',
+      imageUrl: null,
+    },
   ]);
 
   const addNewItem = () => {
+    if (surveyItems.length >= bodyParts.length) {
+      Alert.alert('Limit reached', `You can only add up to ${bodyParts.length} items (one per body part)`);
+      return;
+    }
+
     setSurveyItems([
       ...surveyItems,
       {
         id: Date.now().toString(),
-        issueType: "",
-        issue: "",
-        bodyPartName: "",
-        bodyPart: "",
-        image: null
-      }
+        bodyPart: '',
+        defectClassName: 'scratch',
+        imageUrl: null,
+      },
     ]);
   };
 
@@ -79,103 +69,125 @@ const MaintenanceSurvey: React.FC = () => {
   };
 
   const updateItem = (id: string, field: keyof SurveyItem, value: any) => {
-    setSurveyItems(
-      surveyItems.map(item =>
+    setSurveyItems(prev =>
+      prev.map(item =>
         item.id === id ? { ...item, [field]: value } : item
       )
     );
   };
 
   const pickImage = async (id: string) => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission required', 'We need camera roll permissions to upload images');
-      return;
-    }
+    try {
+      const permission = await ImagePicker.requestCameraPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert('Permission Denied', 'Camera access is required to take photos.');
+        return;
+      }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      const currentItem = surveyItems.find(item => item.id === id);
-      const defectClass = currentItem?.issue
-        ? getDefectClassFromIssue(currentItem.issue)
-        : "scratch";
-
-      updateItem(id, 'image', {
-        url: result.assets[0].uri,
-        defectClassName: defectClass
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: false,
+        aspect: [4, 3],
+        quality: 0.8,
+        cameraType: ImagePicker.CameraType.back,
       });
+
+      if (result.canceled || !result.assets?.length) return;
+
+      const asset = result.assets[0];
+      const fileInfo = await FileSystem.getInfoAsync(asset.uri);
+      if (!fileInfo.exists) {
+        Alert.alert('Error', 'The selected image file does not exist.');
+        return;
+      }
+
+      const fileName = `drone_${params.id}_${Date.now()}.jpg`;
+      const imageUrl = await uploadImage(asset.uri, fileName, 'image/jpeg');
+
+      if (!imageUrl) {
+        Alert.alert('Upload Failed', 'Could not upload the image.');
+        return;
+      }
+
+      updateItem(id, 'imageUrl', imageUrl);
+    } catch (error) {
+      console.error('Image picker error:', error);
+      Alert.alert('Error', 'Failed to pick or upload image.');
     }
   };
 
-  const getDefectClassFromIssue = (issue: string): DefectClassName => {
-    const issueMap: Record<string, DefectClassName> = {
-      "Crack": "crack",
-      "Dent": "dent",
-      "Paint Off": "paint-off",
-      "Scratch": "scratch",
-      "Missing Part": "missing-head",
-      "Discoloration": "paint-off",
-      "Loose Part": "missing-head",
-      "Non-functional": "missing-head",
-      "Misaligned": "missing-head"
-    };
-
-    return issueMap[issue] || "scratch";
-  };
-
-  const handleSubmit = () => {
-    const isValid = surveyItems.every(item =>
-      item.issueType && item.issue && item.bodyPart && item.image
+  const handleSubmit = async() => {
+    // Validate all fields are filled
+    const incompleteItem = surveyItems.find(item =>
+      !item.bodyPart || !item.defectClassName || !item.imageUrl
     );
 
-    if (!isValid) {
-      Alert.alert("Validation Error", "Please fill all fields for all items");
+    if (incompleteItem) {
+      Alert.alert('Incomplete Form', 'Please fill all fields for all items.');
       return;
     }
 
-    const droneImagesAI: DroneImagesAI = {
-      droneId: "DRONE123",
-      imageParts: surveyItems.reduce((acc, item) => {
-        if (item.image) {
-          acc[item.bodyPart] = {
-            url: item.image.url,
-            defectClassName: getDefectClassFromIssue(item.issue) || "scratch"
-          };
-        }
-        return acc;
-      }, {} as Record<string, ImagePart>),
-      createdAt: new Date().toISOString()
-    };
+    // Validate no duplicate body parts
+    const bodyPartsSet = new Set(surveyItems.map(item => item.bodyPart));
+    if (bodyPartsSet.size !== surveyItems.length) {
+      Alert.alert('Duplicate Body Parts', 'Each body part can only be selected once.');
+      return;
+    }
 
-    console.log("Submitting:", droneImagesAI);
-    Alert.alert("Success", "Survey submitted successfully");
+    // Prepare data for submission
+    const imageParts: Record<string, { url: string; defectClassName: DefectClassName }> = {};
+    surveyItems.forEach(item => {
+      if (item.bodyPart && item.imageUrl) {
+        imageParts[item.bodyPart] = {
+          url: item.imageUrl,
+          defectClassName: item.defectClassName,
+        };
+      }
+    });
+
+    const submissionData = {
+      droneId: params.id as string,
+      imageParts,
+    };
+     const data:any= await maintainanceService.droneMaintenanceSurvey(submissionData);
+    console.log('Submitting:', data);
+    Alert.alert('Success', 'Maintenance survey submitted successfully!');
+    router.back();
+    // Here you would typically call your API to submit the data
   };
+
+  const availableBodyParts = bodyParts.filter(
+    part => !surveyItems.some(item => item.bodyPart === part)
+  );
 
   return (
     <ScrollView
-      contentContainerStyle={{ paddingHorizontal: 10, paddingBottom: insets.bottom + 40 }}
+      contentContainerStyle={{
+        paddingHorizontal: 10,
+        paddingBottom: insets.bottom + 40,
+      }}
       keyboardShouldPersistTaps="handled"
       className="bg-white"
     >
       <Header text="Maintenance Survey" insets={insets} />
       <Text className="text-xl text-gray-600 mb-6 pl-3 mt-3">
-        Please fill in the details below
+        Please document each damaged body part
       </Text>
 
       {surveyItems.map((item, index) => (
-        <View key={item.id} className="bg-white rounded-xl p-4 mb-5 shadow-md shadow-black/10 border border-gray-200">
+        <View
+          key={item.id}
+          className="bg-white rounded-xl p-4 mb-5 shadow-md shadow-black/10 border border-gray-200"
+        >
           <View className="flex-row justify-between items-center mb-4">
             <Text className="text-lg font-semibold text-gray-800">
               Item {index + 1}
             </Text>
             {surveyItems.length > 1 && (
-              <TouchableOpacity onPress={() => removeItem(item.id)} className="p-1">
+              <TouchableOpacity
+                onPress={() => removeItem(item.id)}
+                className="p-1"
+              >
                 <MaterialIcons name="delete" size={24} color="#ff4444" />
               </TouchableOpacity>
             )}
@@ -183,57 +195,40 @@ const MaintenanceSurvey: React.FC = () => {
 
           <View className="mb-5">
             <Text className="text-base font-medium text-gray-700 mb-2">
-              Select Issue Type
+              Body Part
             </Text>
             <View className="border border-gray-300 rounded-lg">
               <Picker
-                selectedValue={item.issueType}
-                onValueChange={(value) => {
-                  updateItem(item.id, 'issueType', value);
-                  updateItem(item.id, 'issue', "");
-                }}
+                selectedValue={item.bodyPart}
+                onValueChange={value => updateItem(item.id, 'bodyPart', value)}
               >
-                <Picker.Item label="Select Issue Type" value="" />
-                {issueTypes.map(type => (
-                  <Picker.Item key={type} label={type} value={type} />
+                <Picker.Item label="Select Body Part" value="" />
+                {availableBodyParts.concat(item.bodyPart).filter(Boolean).map(part => (
+                  <Picker.Item
+                    key={part}
+                    label={part.replace(/_/g, ' ')}
+                    value={part}
+                  />
                 ))}
               </Picker>
             </View>
           </View>
 
-          {item.issueType && (
-            <View className="mb-5">
-              <Text className="text-base font-medium text-gray-700 mb-2">
-                Select an Issue
-              </Text>
-              <View className="flex-row flex-wrap gap-2">
-                {issues[item.issueType]?.map(issue => (
-                  <TouchableOpacity
-                    key={issue}
-                    className={`py-2 px-3 rounded-lg ${item.issue === issue ? 'bg-blue-500' : 'bg-gray-100'}`}
-                    onPress={() => updateItem(item.id, 'issue', issue)}
-                  >
-                    <Text className={`text-sm ${item.issue === issue ? 'text-white' : 'text-gray-800'}`}>
-                      {issue}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          )}
-
           <View className="mb-5">
             <Text className="text-base font-medium text-gray-700 mb-2">
-              Body Part Name
+              Defect Type
             </Text>
             <View className="border border-gray-300 rounded-lg">
               <Picker
-                selectedValue={item.bodyPart}
-                onValueChange={(value) => updateItem(item.id, 'bodyPart', value)}
+                selectedValue={item.defectClassName}
+                onValueChange={value => updateItem(item.id, 'defectClassName', value)}
               >
-                <Picker.Item label="Select Body Part" value="" />
-                {bodyParts.map(part => (
-                  <Picker.Item key={part} label={part} value={part} />
+                {defectClasses.map(defect => (
+                  <Picker.Item
+                    key={defect}
+                    label={defect.replace(/-/g, ' ')}
+                    value={defect}
+                  />
                 ))}
               </Picker>
             </View>
@@ -241,15 +236,15 @@ const MaintenanceSurvey: React.FC = () => {
 
           <View className="mb-4">
             <Text className="text-base font-medium text-gray-700 mb-2">
-              Add Image
+              Upload Image
             </Text>
             <TouchableOpacity
               className="h-36 border border-gray-300 rounded-lg justify-center items-center overflow-hidden"
               onPress={() => pickImage(item.id)}
             >
-              {item.image ? (
+              {item.imageUrl ? (
                 <Image
-                  source={{ uri: item.image.url }}
+                  source={{ uri: item.imageUrl }}
                   className="w-full h-full"
                   resizeMode="cover"
                 />
@@ -257,7 +252,7 @@ const MaintenanceSurvey: React.FC = () => {
                 <View className="items-center justify-center">
                   <MaterialIcons name="add-a-photo" size={32} color="#555" />
                   <Text className="mt-2 text-gray-500">
-                    Click to upload image
+                    Click to take photo
                   </Text>
                 </View>
               )}
@@ -266,23 +261,23 @@ const MaintenanceSurvey: React.FC = () => {
         </View>
       ))}
 
-      <TouchableOpacity
-        className="flex-row items-center justify-center rounded-lg mb-5 mt-6 py-3 border border-gray-100 bg-orange-50"
-        onPress={addNewItem}
-      >
-        <Text className='text-primary text-2xl font-medium'>+</Text>
-        <Text className="text-primary text-lg font-medium ml-2">
-          Add Another Item
-        </Text>
-      </TouchableOpacity>
+      {surveyItems.length < bodyParts.length && (
+        <TouchableOpacity
+          className="flex-row items-center justify-center rounded-lg mb-5 mt-6 py-3 border border-gray-100 bg-orange-50"
+          onPress={addNewItem}
+        >
+          <Text className="text-primary text-2xl font-medium">+</Text>
+          <Text className="text-primary text-lg font-medium ml-2">
+            Add Another Body Part
+          </Text>
+        </TouchableOpacity>
+      )}
 
       <TouchableOpacity
         className="bg-primary py-4 rounded-lg items-center"
         onPress={handleSubmit}
       >
-        <Text className="text-white text-lg font-bold">
-          Submit Survey
-        </Text>
+        <Text className="text-white text-lg font-bold">Submit Survey</Text>
       </TouchableOpacity>
     </ScrollView>
   );

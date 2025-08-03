@@ -1391,7 +1391,7 @@ const FlightCard: React.FC<FlightCardProps> = React.memo(({ flight, onPress, use
             {userLocation == flight.start_location && <UpwardArrow />}
             {userLocation == flight.end_location && <DownwardArrow />}
           </View>
-          <Text className="text-gray-500 mt-1">{locationIdToNameMap[startLocation]} → {locationIdToNameMap[endLocation]}</Text>
+          <Text className="text-gray-500 mt-1">{locationIdToNameMap[startLocation as keyof typeof locationIdToNameMap]} → {locationIdToNameMap[endLocation as keyof typeof locationIdToNameMap  ]}</Text>
         </View>
       </View>
       <View className="mt-2 flex-row justify-between items-center">
@@ -1498,7 +1498,7 @@ const Tabs: React.FC<{
 }> = React.memo(({ activeTab, onTabPress }) => {
   return (
     <View className="w-full flex-row px-4 mt-2 border-b border-gray-200 mt-6" accessibilityRole="tablist">
-      {(['scheduled', 'ongoing', 'history'] as FlightTab[]).map((tab) => (
+      {([ 'ongoing', 'scheduled', 'history'] as FlightTab[]).map((tab) => (
         <TouchableOpacity
           key={tab}
           className={`pb-2 ${activeTab === tab ? 'border-b-2 border-orange-500' : ''} flex-1`}
@@ -1519,7 +1519,7 @@ const FlightDashboard: React.FC = () => {
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<FlightTab>('scheduled');
+  const [activeTab, setActiveTab] = useState<FlightTab>('ongoing');
   const [searchQuery, setSearchQuery] = useState('');
   const [notification, setNotification] = useState<{ message: string; type: NotificationType } | null>(null);
   const [loading, setLoading] = useState(true);

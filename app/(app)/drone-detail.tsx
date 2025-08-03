@@ -51,75 +51,75 @@ function DroneStats({ totalFlights, lastMaintenance, handleMaintainanceClick }: 
 
 function DroneFooterActions({ assigned, bottomInset, droneId, router }: { assigned: boolean; bottomInset: number; droneId: string, router: Router }) {
 
-    const [connected, setConnected] = useState(false);
-    const [showConnectModal, setShowConnectModal] = useState(false);
-    const [password, setPassword] = useState('');
-    const [connectLoading, setConnectLoading] = useState(false);
-    const [connectError, setConnectError] = useState('');
-    const { user, setClearskToken } = useAuth();
+    // const [connected, setConnected] = useState(false);
+    // const [showConnectModal, setShowConnectModal] = useState(false);
+    // const [password, setPassword] = useState('');
+    // const [connectLoading, setConnectLoading] = useState(false);
+    // const [connectError, setConnectError] = useState('');
+    // const { user, setClearskToken } = useAuth();
 
-    const handleConnect = async () => {
-        setConnectLoading(true);
-        setConnectError('');
+    // const handleConnect = async () => {
+    //     setConnectLoading(true);
+    //     setConnectError('');
 
-        try {
-            // Validate inputs
-            if (!user?.email) {
-                throw new Error("User authentication required. Please log in again.");
-            }
+    //     try {
+    //         // Validate inputs
+    //         if (!user?.email) {
+    //             throw new Error("User authentication required. Please log in again.");
+    //         }
 
-            if (!password.trim()) {
-                throw new Error("Password is required.");
-            }
+    //         if (!password.trim()) {
+    //             throw new Error("Password is required.");
+    //         }
 
-            if (!droneId) {
-                throw new Error("Drone ID is missing.");
-            }
-            console.log({
-                email: user.email,
-                droneId,
-                password: password.trim(),
-            })
-            const responseclr = await fetch(`${CLEARSKY_URL}/admin/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    useremail: user.email,
-                    password,
-                }),
-            });
+    //         if (!droneId) {
+    //             throw new Error("Drone ID is missing.");
+    //         }
+    //         console.log({
+    //             email: user.email,
+    //             droneId,
+    //             password: password.trim(),
+    //         })
+    //         const responseclr = await fetch(`${CLEARSKY_URL}/admin/login`, {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //             },
+    //             body: JSON.stringify({
+    //                 useremail: user.email,
+    //                 password,
+    //             }),
+    //         });
 
-            // Check if response is OK (status 200-299)
-            if (!responseclr.ok) {
-                const errorData = await responseclr.json();
-                throw new Error(errorData.message || 'Login failed');
-            }
+    //         // Check if response is OK (status 200-299)
+    //         if (!responseclr.ok) {
+    //             const errorData = await responseclr.json();
+    //             throw new Error(errorData.message || 'Login failed');
+    //         }
 
-            const data: any = await responseclr.json();
-            console.log('Login response:', data);
-            setClearskToken(data.token);
-            const response: any = await flightService.connectDrone(droneId);
+    //         const data: any = await responseclr.json();
+    //         console.log('Login response:', data);
+    //         setClearskToken(data.token);
+    //         const response: any = await flightService.connectDrone(droneId);
 
 
-            if (!response || response.status !== 'success') {
-                throw new Error(response?.message || "Connection failed. Please try again.");
-            }
+    //         if (!response || response.status !== 'success') {
+    //             throw new Error(response?.message || "Connection failed. Please try again.");
+    //         }
 
-            setConnected(true);
-            setShowConnectModal(false);
-            setPassword('');
-        } catch (error: any) {
-            console.error("Connection error:", error);
-            const errorMessage = error.response?.data?.message ||
-                error.message ||
-                "An unexpected error occurred. Please try again.";
-            setConnectError(errorMessage);
-        } finally {
-            setConnectLoading(false);
-        }
-    };
+    //         setConnected(true);
+    //         setShowConnectModal(false);
+    //         setPassword('');
+    //     } catch (error: any) {
+    //         console.error("Connection error:", error);
+    //         const errorMessage = error.response?.data?.message ||
+    //             error.message ||
+    //             "An unexpected error occurred. Please try again.";
+    //         setConnectError(errorMessage);
+    //     } finally {
+    //         setConnectLoading(false);
+    //     }
+    // };
 
 
     return (
@@ -132,7 +132,7 @@ function DroneFooterActions({ assigned, bottomInset, droneId, router }: { assign
             paddingTop: 16,
             zIndex: 10,
         }}>
-            <Modal
+            {/* <Modal
                 visible={showConnectModal}
                 transparent
                 animationType="fade"
@@ -170,7 +170,7 @@ function DroneFooterActions({ assigned, bottomInset, droneId, router }: { assign
                         </View>
                     </View>
                 </View>
-            </Modal>
+            </Modal> */}
 
             {/* {!connected && assigned ? (
                 <TouchableOpacity
