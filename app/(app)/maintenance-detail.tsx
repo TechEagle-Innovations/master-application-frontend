@@ -16,18 +16,6 @@ function Field({ label, value }: { label: string; value?: string | number | bool
   );
 }
 
-// function Attachments({ attachments }: { attachments?: string[] }) {
-//   if (!attachments || attachments.length === 0) return null;
-//   return (
-//     <View className="mb-2">
-//       <Text className="text-gray-500 mb-1">Attachments:</Text>
-//       {attachments.map((att, idx) => (
-//         <Text key={idx} className="text-base underline text-blue-600">{att}</Text>
-//       ))}
-//     </View>
-//   );
-// }
-
 export default function MaintenanceDetail() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -40,6 +28,15 @@ export default function MaintenanceDetail() {
       </View>
     );
   }
+
+const handleResolve = () => {
+  router.push({
+    pathname: '/(app)/resolve',
+    params: { 
+      maintenance: JSON.stringify(maintenance) 
+    }
+  });
+};
 
   return (
     <View className="flex-1 bg-white">
@@ -104,10 +101,20 @@ export default function MaintenanceDetail() {
               </View>
               <Text className="text-orange-600 text-xl mb-1 mt-2">Maintenance In Progress</Text>
               <Text className="text-gray-500">Awaiting completion</Text>
+              
+              {/* Add Resolve Button only when maintenance is pending */}
+              {maintenance.status === 'PENDING' && (
+                <TouchableOpacity 
+                  className="mt-6 bg-orange-600 py-3 px-6 rounded-lg"
+                  onPress={handleResolve}
+                >
+                  <Text className="text-white font-medium">Resolve Maintenance</Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
         </View>
       </ScrollView>
     </View>
   );
-} 
+}
