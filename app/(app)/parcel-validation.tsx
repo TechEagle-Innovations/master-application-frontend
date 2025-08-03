@@ -16,7 +16,7 @@ export default function ParcelValidation() {
   };
 
   const handleValidate = () => {
-    router.push({ pathname: '/(app)/history' });
+    router.push({ pathname: '/(app)/parcels' });
   };
 
   return (

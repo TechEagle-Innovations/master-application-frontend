@@ -23,7 +23,6 @@ export type DroneMaintenance = {
   description: string;
   actionsTaken: MaintenanceAction[];
   isResolved: boolean;
-  resolutionNotes?: string;
   nextScheduledDate?: string;
   maintenanceInterval?: string;
 };
@@ -38,7 +37,6 @@ type ParamList = {
 type ResolveMaintenanceForm = {
   status: 'COMPLETED' | 'CANCELLED';
   isResolved: boolean;
-  resolutionNotes: string;
   actionsTaken: MaintenanceAction[];
   nextScheduledDate?: string;
   maintenanceInterval?: string;
@@ -59,7 +57,6 @@ export default function ResolveMaintenanceScreen() {
   const [formData, setFormData] = useState<ResolveMaintenanceForm>({
     status: maintenance?.status === 'CANCELLED' ? 'CANCELLED' : 'COMPLETED',
     isResolved: maintenance?.isResolved || false,
-    resolutionNotes: maintenance?.userComments || '',
     actionsTaken: maintenance?.actionsTaken || [],
     nextScheduledDate: maintenance?.nextScheduledDate,
     maintenanceInterval: maintenance?.maintenanceInterval
@@ -67,10 +64,6 @@ export default function ResolveMaintenanceScreen() {
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-
-    if (!formData.resolutionNotes.trim()) {
-      newErrors.resolutionNotes = 'Resolution notes are required';
-    }
 
     if (formData.status === 'COMPLETED' && !formData.isResolved) {
       newErrors.isResolved = 'Cannot mark as completed without resolving';
@@ -138,11 +131,11 @@ export default function ResolveMaintenanceScreen() {
       };
 
       const response: any = await maintainanceService.resolveMaintaince(maintenance._id, payload);
-
-      if (!response.ok) {
-        // const errorData = await response.json();
-        throw new Error('Failed to submit maintenance resolution');
-      }
+     console.log("response", response);
+      // if (!response.ok) {
+      //   // const errorData = await response.json();
+      //   throw new Error('Failed to submit maintenance resolution');
+      // }
 
       Alert.alert(
         'Success',
@@ -199,7 +192,7 @@ export default function ResolveMaintenanceScreen() {
         )}
       </View>
 
-      <View className="bg-white rounded-lg p-4 mb-4 shadow-sm">
+      {/* <View className="bg-white rounded-lg p-4 mb-4 shadow-sm">
         <Text className="text-lg font-bold mb-2 border-b border-gray-200 pb-1">Resolution Notes</Text>
         <TextInput
           className={`border rounded-md p-2 text-sm h-24 ${errors.resolutionNotes ? 'border-red-500' : 'border-gray-300'}`}
@@ -214,7 +207,7 @@ export default function ResolveMaintenanceScreen() {
         {errors.resolutionNotes && (
           <Text className="text-red-500 text-xs mt-1">{errors.resolutionNotes}</Text>
         )}
-      </View>
+      </View> */}
 
       <View className="bg-white rounded-lg p-4 mb-4 shadow-sm">
         <View className="flex-row justify-between items-center mb-2 border-b border-gray-200 pb-1">
@@ -332,7 +325,7 @@ export default function ResolveMaintenanceScreen() {
       </View>
 
       <TouchableOpacity
-        className={`py-3 rounded-lg items-center mb-10 ${isSubmitting ? 'bg-blue-300' : 'bg-blue-500'}`}
+        className={`py-3 rounded-lg items-center mb-10 ${isSubmitting ? 'bg-orange-300' : 'bg-primary'}`}
         onPress={handleSubmit}
         disabled={isSubmitting}
       >

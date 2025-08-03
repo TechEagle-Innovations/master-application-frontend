@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useShipment } from '../../utils/ShipmentContext';
 import SuccessIcon from "@/assets/images/successIcon.svg"
 import Header from '@/components/Header';
+import { Archive } from 'lucide-react-native';
 
 function Field({ label, value }: { label: string; value?: string | number | boolean }) {
   if (value === undefined || value === null || value === '') return null;
@@ -65,9 +66,13 @@ const handleResolve = () => {
           {/* Actions Taken */}
           {maintenance.actionsTaken && maintenance.actionsTaken.length > 0 && (
             <View className="bg-white rounded-2xl border border-gray-100 p-4 mb-4 shadow-sm">
-              <Text className="text-lg mb-3">Actions Taken</Text>
+              <Text className="text-lg mb-3 font-bold">Actions Taken</Text>
               {maintenance.actionsTaken.map((action, idx) => (
-                <Text key={idx} className="text-base mb-1">• {String(action)}</Text>
+                <View className='' key={idx+action.action}>
+                  <Text className="text-lg mb-1 font-semibold">Action 1</Text>
+                <Text className="text-base mb-1"> Action: {String(action.action)}</Text>
+                <Text className="text-base mb-1"> Notes: {String(action.notes)}</Text>
+                </View>
               ))}
             </View>
           )}
@@ -76,7 +81,7 @@ const handleResolve = () => {
             <View className="bg-white rounded-2xl border border-gray-100 p-4 mb-4 shadow-sm">
               <Text className="text-lg mb-3">Maintenance Checklist</Text>
               {maintenance.maintenanceChecklist.map((item, idx) => (
-                <Text key={idx} className="text-base mb-1">• {String(item)}</Text>
+                <Text key={idx+item} className="text-base mb-1">• {String(item)}</Text>
               ))}
             </View>
           )}
