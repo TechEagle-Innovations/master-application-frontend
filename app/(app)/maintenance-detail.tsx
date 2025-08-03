@@ -30,12 +30,7 @@ export default function MaintenanceDetail() {
   }
 
 const handleResolve = () => {
-  router.push({
-    pathname: '/(app)/resolve',
-    params: { 
-      maintenance: JSON.stringify(maintenance) 
-    }
-  });
+  router.push('/(app)/resolve');
 };
 
   return (

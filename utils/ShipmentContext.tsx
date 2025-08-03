@@ -245,87 +245,16 @@ export interface Maintenance {
     issueSeverity: string;
     userComments: string;
     isResolved: boolean;
+    scheduledDate:string;
     createdAt: string;
     updatedAt: string;
     actionsTaken: any[];
+    nextScheduledDate:string;
     maintenanceChecklist: any[];
+    maintenanceInterval:string;
     __v: number;
 }
 
-const maintenanceData: Maintenance[] = [
-    {
-        _id: "68636d6079692d457ddf47ad",
-        droneId: "T007VEE0003VERPL1003012024",
-        maintenanceType: "ISSUE_REPORTED",
-        status: "PENDING",
-        reportedBy: "68480d554aa46b57ade992d9",
-        description: "Test Description ",
-        priority: "MEDIUM",
-        issueType: "HARDWARE",
-        issueSeverity: "MINOR",
-        userComments: "Test committee ",
-        isResolved: false,
-        createdAt: "2025-07-01T05:08:48.177Z",
-        updatedAt: "2025-07-01T05:08:48.177Z",
-        actionsTaken: [],
-        maintenanceChecklist: [],
-        __v: 0
-    },
-    {
-        _id: "68636ec579692d457ddf47af",
-        droneId: "T007VEE0003VERPL1003012024",
-        maintenanceType: "ISSUE_REPORTED",
-        status: "PENDING",
-        reportedBy: "68480d554aa46b57ade992d9",
-        description: "Testing description ",
-        priority: "CRITICAL",
-        issueType: "SOFTWARE",
-        issueSeverity: "CRITICAL",
-        userComments: "Testimonials ",
-        isResolved: false,
-        createdAt: "2025-07-01T05:14:45.794Z",
-        updatedAt: "2025-07-01T05:14:45.794Z",
-        actionsTaken: [],
-        maintenanceChecklist: [],
-        __v: 0
-    },
-    {
-        _id: "68636f4e79692d457ddf47b1",
-        droneId: "T007VEE0003VERPL1003012024",
-        maintenanceType: "ISSUE_REPORTED",
-        status: "PENDING",
-        reportedBy: "68480d554aa46b57ade992d9",
-        description: "Test Description ",
-        priority: "CRITICAL",
-        issueType: "OTHER",
-        issueSeverity: "MAJOR",
-        userComments: "testimonials ",
-        isResolved: false,
-        createdAt: "2025-07-01T05:17:02.985Z",
-        updatedAt: "2025-07-01T05:17:02.985Z",
-        actionsTaken: [],
-        maintenanceChecklist: [],
-        __v: 0
-    },
-    {
-        _id: "68636fac79692d457ddf47b3",
-        droneId: "T007VEE0003VERPL1003012024",
-        maintenanceType: "ISSUE_REPORTED",
-        status: "PENDING",
-        reportedBy: "68480d554aa46b57ade992d9",
-        description: "Testimonials ",
-        priority: "CRITICAL",
-        issueType: "SOFTWARE",
-        issueSeverity: "MAJOR",
-        userComments: "Testimonials ",
-        isResolved: false,
-        createdAt: "2025-07-01T05:18:36.120Z",
-        updatedAt: "2025-07-01T05:18:36.121Z",
-        actionsTaken: [],
-        maintenanceChecklist: [],
-        __v: 0
-    }
-];
 
 interface ShipmentContextProps {
     shipments: Shipment[];

@@ -59,6 +59,12 @@ class MaintainanceService extends BaseService {
     async droneMaintenanceSurvey(data: DroneImagesAI) {
         return this.post('/drone-images-ai', data);
     }
+
+    async resolveMaintaince(id:string, data: any) {
+        return this.post(`/resolve/${id}`, data);
+    }
+
+    
     // Add more drone-related methods here as needed
 }
 
