@@ -7,10 +7,8 @@ import { useDroneTracking } from '../../hooks/useDroneTracking';
 import Header from '@/components/Header';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DroneImage from '@/assets/images/drone_img.png';
-import { useParcelPhoto } from '../../hooks/useParcelPhoto';
-import ParcelValidationModal from '@/components/ParcelValidationModal';
-import ValidationSuccessModal from '@/components/ValidationSuccessModal';
 import { isAtDelivery, haversineDistance } from '@/utils/droneUtils';
+import { useShipment } from '@/utils/ShipmentContext';
 
 const DroneTracking = () => {
   // All hooks and state at the top
@@ -25,15 +23,14 @@ const DroneTracking = () => {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { drone, route, connectionStatus } = useDroneTracking(flightId);
+  const {setConnected}=useShipment();
   const mapRef = useRef<MapView>(null);
   const [followDrone, setFollowDrone] = useState(true);
   const [lastRegion, setLastRegion] = useState<any>(null);
   const [mapType, setMapType] = useState<'standard' | 'satellite'>('standard');
   const [showParcelValidation, setShowParcelValidation] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [hasValidated, setHasValidated] = useState(false);
-  const { photo, loading: photoLoading, error: photoError, takePhoto, reset: resetPhoto } = useParcelPhoto();
+  // const [showSuccess, setShowSuccess] = useState(false);
+  // const [hasValidated, setHasValidated] = useState(false);
 
   // Progress bar width state and ref (for bottom info card)
   const [barWidth, setBarWidth] = useState<number>(300); // fallback 300px
@@ -45,6 +42,7 @@ const DroneTracking = () => {
       setTimeout(() => {
         router.replace({ pathname: '/(app)/dashboard', params: { message: 'Please Connect Drone First', type: connectionStatus } });
       }, 200);
+      setConnected(false);
     }
     if (connectionStatus === 'connected' && drone) {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -139,37 +137,35 @@ const DroneTracking = () => {
       drone &&
       drone.arm_status === false &&
       destination &&
-      isAtDelivery(drone, destination) &&
-      !showParcelValidation &&
-      !showSuccess &&
-      !hasValidated
+      isAtDelivery(drone, destination) 
     ) {
-      setShowParcelValidation(true);
+      // setShowParcelValidation(true);
+      router.push("/(app)/postflight-checklist")
     }
-  }, [drone, destination, showParcelValidation, showSuccess, hasValidated]);
+  }, [drone, destination, showParcelValidation]);
 
-  // Handler: validate parcel
-  const handleValidate = () => {
-    setShowParcelValidation(false);
-    setShowSuccess(true);
-    setHasValidated(true);
-    resetPhoto();
-  };
+  // // Handler: validate parcel
+  // const handleValidate = () => {
+  //   setShowParcelValidation(false);
+  //   setShowSuccess(true);
+  //   setHasValidated(true);
+  //   resetPhoto();
+  // };
 
-  // Handler: close success popup
-  const handleSuccessClose = () => {
-    setShowSuccess(false);
-    setSelectedOption(null);
-    resetPhoto();
-  };
+  // // Handler: close success popup
+  // const handleSuccessClose = () => {
+  //   setShowSuccess(false);
+  //   setSelectedOption(null);
+  //   resetPhoto();
+  // };
 
-  // Handler: close/cancel validation modal
-  const handleValidationClose = () => {
-    setShowParcelValidation(false);
-    setHasValidated(true);
-    setSelectedOption(null);
-    resetPhoto();
-  };
+  // // Handler: close/cancel validation modal
+  // const handleValidationClose = () => {
+  //   setShowParcelValidation(false);
+  //   setHasValidated(true);
+  //   setSelectedOption(null);
+  //   resetPhoto();
+  // };
 
   if (error) {
     return (
@@ -430,7 +426,7 @@ const DroneTracking = () => {
         </View>
       </View>
       {/* Parcel Validation Modal */}
-      <ParcelValidationModal
+      {/* <ParcelValidationModal
         visible={showParcelValidation}
         onValidate={handleValidate}
         onClose={handleValidationClose}
@@ -441,12 +437,12 @@ const DroneTracking = () => {
         onTakePhoto={takePhoto}
         selectedOption={selectedOption}
         setSelectedOption={setSelectedOption}
-      />
+      /> */}
       {/* Success Modal */}
-      <ValidationSuccessModal
+      {/* <ValidationSuccessModal
         visible={showSuccess}
         onClose={handleSuccessClose}
-      />
+      /> */}
     </SafeAreaView>
   );
 };

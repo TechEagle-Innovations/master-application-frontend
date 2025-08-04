@@ -18,7 +18,7 @@ const FlightDetails = () => {
         connected = false,
         setConnected = () => {},
         isBatterConnected = false,
-        setIsBatteryConnected = () => {}
+        setIsBatteryConnected = () => {},
     } = useShipment() || {}; // Provide empty fallback object
     const insets = useSafeAreaInsets();
     const router = useRouter();
@@ -28,9 +28,9 @@ const FlightDetails = () => {
     const [showBatteryModal, setShowBatteryModal] = useState(false);
     const [password, setPassword] = useState('');
     const [connectLoading, setConnectLoading] = useState(false);
-    const [connectError, setConnectError] = useState('');
-
+    const [connectError, setConnectError] = useState(''); 
     const [selectedBatteries, setSelectedBatteries] = useState<Battery[]>([]);
+    const {clearskyToken}=useAuth();
     // const [pageLoading, setPageLoading] = useState(false);
 
     const handleConnect = async () => {
@@ -332,7 +332,7 @@ const FlightDetails = () => {
                         <Text className="text-lg text-black">Discard</Text>
                     </TouchableOpacity>} */}
 
-                    {tab === 'ongoing' && !selectedFlight?.isCompleted && connected && (
+                    {tab === 'ongoing' && selectedFlight?.isPreFlightChecklistCompleted && !selectedFlight?.isCompleted && connected && (
                         <TouchableOpacity
                             className="w-full rounded-xl py-4 bg-orange-500 items-center"
                             onPress={() =>
@@ -353,7 +353,7 @@ const FlightDetails = () => {
                             <Text className="text-lg text-white">Track Flight</Text>
                         </TouchableOpacity>
                     )}
-                    {tab === 'ongoing' && selectedFlight?.isCompleted && (
+                    {tab === 'ongoing' && selectedFlight?.isCompleted && connected &&(
                         <TouchableOpacity
                             className="w-full rounded-xl py-4 bg-orange-500 items-center"
                             onPress={() => router.push('/(app)/postflight-checklist')}
@@ -361,7 +361,7 @@ const FlightDetails = () => {
                             <Text className="text-lg text-white">Run PostFlight Checklist</Text>
                         </TouchableOpacity>
                     )}
-                    {(tab === 'ongoing' && !connected && selectedFlight?.isPreFlightChecklistCompleted) &&
+                    {(tab === 'ongoing' && !connected ) &&
                         (
                             <TouchableOpacity
                                 className="bg-primary rounded-xl py-4 mb-3 items-center"
