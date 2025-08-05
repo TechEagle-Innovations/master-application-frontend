@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DroneImage from '@/assets/images/drone_img.png';
 import { isAtDelivery, haversineDistance } from '@/utils/droneUtils';
 import { useShipment } from '@/utils/ShipmentContext';
+import { useAuth } from '@/utils/auth/AuthContext';
 
 const DroneTracking = () => {
   // All hooks and state at the top
@@ -23,12 +24,14 @@ const DroneTracking = () => {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { drone, route, connectionStatus } = useDroneTracking(flightId);
-  const {setConnected}=useShipment();
+  const { setConnected } = useShipment();
   const mapRef = useRef<MapView>(null);
   const [followDrone, setFollowDrone] = useState(true);
   const [lastRegion, setLastRegion] = useState<any>(null);
   const [mapType, setMapType] = useState<'standard' | 'satellite'>('standard');
   const [showParcelValidation, setShowParcelValidation] = useState(false);
+  const { user } = useAuth()
+  const { selectedFlight } = useShipment();
   // const [showSuccess, setShowSuccess] = useState(false);
   // const [hasValidated, setHasValidated] = useState(false);
 
@@ -102,8 +105,8 @@ const DroneTracking = () => {
   if (droneHeading === undefined && route && route.length > 1) {
     const prev = route[route.length - 2];
     const curr = route[route.length - 1];
-    if (prev && curr && typeof prev.longitude === 'number' && typeof prev.latitude === 'number' && 
-        typeof curr.longitude === 'number' && typeof curr.latitude === 'number') {
+    if (prev && curr && typeof prev.longitude === 'number' && typeof prev.latitude === 'number' &&
+      typeof curr.longitude === 'number' && typeof curr.latitude === 'number') {
       const toRad = (deg: number) => deg * Math.PI / 180;
       const toDeg = (rad: number) => rad * 180 / Math.PI;
       const dLon = toRad(curr.longitude - prev.longitude);
@@ -137,12 +140,20 @@ const DroneTracking = () => {
       drone &&
       drone.arm_status === false &&
       destination &&
-      isAtDelivery(drone, destination) 
+      isAtDelivery(drone, destination) && !showParcelValidation && !selectedFlight?.isPostFlightChecklistCompleted
     ) {
-      // setShowParcelValidation(true);
-      router.push("/(app)/postflight-checklist")
+      setShowParcelValidation(true);
     }
-  }, [drone, destination, showParcelValidation]);
+  }, [drone, destination]);
+
+  useEffect(() => {
+    if (showParcelValidation && user?.location === selectedFlight?.end_location)
+      router.push("/(app)/postflight-checklist");
+    else {
+      if(showParcelValidation)
+      router.push("/(app)/dashboard");
+    }
+  }, [showParcelValidation])
 
   // // Handler: validate parcel
   // const handleValidate = () => {

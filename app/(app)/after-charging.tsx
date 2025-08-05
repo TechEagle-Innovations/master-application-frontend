@@ -3,13 +3,13 @@ import { View, Text, TextInput, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Header from '@/components/Header';
 import Button from '@/components/auth/Button';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/utils/auth/AuthContext';
 import { batteryService } from '@/utils/api/services/BatteryService';
 
 export default function AfterCharging() {
   const insets = useSafeAreaInsets();
-  const { noOfCells, voltage, startTime, batteryId } = useLocalSearchParams<{ noOfCells: string, voltage: string, startTime: string, batteryId: string }>();
+  const { noOfCells, voltage, startTime, batteryId, id } = useLocalSearchParams<{ noOfCells: string, voltage: string, startTime: string, batteryId: string, id: string }>();
   const [voltageAfter, setVoltageAfter] = useState('');
   const [cellVoltages, setCellVoltages] = useState<string[]>([]);
   const [remarks, setRemarks] = useState('');
@@ -52,6 +52,7 @@ export default function AfterCharging() {
     try {
       const stopChargingResponse = await batteryService.stopCharging(batteryId, stopCharging);
       console.log('Stop Charging Response:', stopChargingResponse);
+      router.back();
     } catch (error) {
       console.error('Error stopping charging:', error);
       // Handle error (e.g., show alert)

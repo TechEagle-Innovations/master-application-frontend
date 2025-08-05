@@ -31,11 +31,11 @@ export default function PreFlightChecklist() {
   }, [clearskyToken]);
 
   // Submit checklist
-  const submitChecklist = useCallback(async (items: ChecklistItem[], photos: (string | null)[]) => {
+  const submitChecklist = useCallback(async (items: ChecklistItem[]) => {
     // Attach photo URLs to items
     const updates = items.map((item, idx) => ({
       ...item,
-      image: photos[idx] || undefined,
+      image: "https://image.jpg",
     }));
     await flightService.completePreFlight(
       { updates },

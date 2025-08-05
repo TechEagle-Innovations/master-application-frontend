@@ -215,7 +215,7 @@ import { batteryService } from '@/utils/api/services/BatteryService';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { useRouter } from 'expo-router';
 
-const BATTERY_TYPES = ['Li-ion', 'NiMH', 'Lead Acid', 'LiPo'];
+const BATTERY_TYPES = ['li-ion',"li-po"];
 
 export default function AddBattery() {
   const insets = useSafeAreaInsets();
@@ -283,7 +283,16 @@ export default function AddBattery() {
     };
     
     try {
-      await batteryService.addBattery(batteryData);
+      // Fix: battery_type must be "li-ion" or "li-po" (not any string)
+      // Accept only "li-ion" or "li-po", fallback to "li-ion" if not valid
+      const allowedTypes = ["li-ion", "li-po"];
+      const safeBatteryType = allowedTypes.includes(batteryData.battery_type)
+        ? batteryData.battery_type
+        : "li-ion";
+      await batteryService.addBattery({
+        ...batteryData,
+        battery_type: safeBatteryType as "li-ion" | "li-po",
+      });
       router.back();
     } catch (error) {
       console.error('Error adding battery:', error);
@@ -345,7 +354,7 @@ export default function AddBattery() {
               value={model}
               onChangeText={setModel}
               returnKeyType="next"
-              onSubmitEditing={() => focusNextField(numCellsRef)}
+              onSubmitEditing={() => focusNextField(numCellsRef as React.RefObject<TextInput>)}
             />
 
             {/* Number of Cells */}
@@ -358,7 +367,7 @@ export default function AddBattery() {
               onChangeText={setNumCells}
               keyboardType="numeric"
               returnKeyType="next"
-              onSubmitEditing={() => focusNextField(voltageRef)}
+              onSubmitEditing={() => focusNextField(voltageRef as React.RefObject<TextInput>)}
             />
 
             {/* Voltage */}
@@ -372,7 +381,7 @@ export default function AddBattery() {
                 onChangeText={setVoltage}
                 keyboardType="numeric"
                 returnKeyType="next"
-                onSubmitEditing={() => focusNextField(mahRef)}
+                onSubmitEditing={() => focusNextField(mahRef as React.RefObject<TextInput>)}
               />
               <Text className="ml-2 text-gray-500">V</Text>
             </View>

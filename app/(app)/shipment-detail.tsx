@@ -5,6 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { CheckCircle2 } from 'lucide-react-native';
 import { useShipment } from '../../utils/ShipmentContext';
 import Header from '@/components/Header';
+import { locationIdToNameMap } from '@/utils/api/config';
 
 // Static mock data for demonstration
 
@@ -35,7 +36,7 @@ function ShipmentFooterActions({ isDelivered, bottomInset }: { isDelivered: bool
                 paddingTop: 16,
                 zIndex: 10,
             }}
-        >
+        >showParcelValidation
             {!isDelivered && tab==="inbound" && (
                 <View className="mb-4">
                     {/* <View className="bg-white rounded-2xl border border-gray-300 mb-4">
@@ -107,7 +108,7 @@ export default function ShipmentDetail() {
 
                                 <Text className="text-base text-gray-700">Pickup Location</Text>
                             </View>
-                            <Text className="text-lg text-gray-900 mb-1">{shipment.senderDetails?.address?.addressLine}, {shipment.senderDetails?.address?.city}, {shipment.senderDetails?.address?.state}, {shipment.senderDetails?.address?.zipCode}</Text>
+                            <Text className="text-lg text-gray-900 mb-1">{shipment.senderDetails?.address?.addressLine}, {locationIdToNameMap[shipment.senderDetails?.address?.city as keyof typeof locationIdToNameMap]}, {shipment.senderDetails?.address?.state}, {shipment.senderDetails?.address?.zipCode}</Text>
                             <Text className="text-gray-400 text-base">{shipment.pickUpDetails?.scheduledDate ? new Date(shipment.pickUpDetails.scheduledDate).toLocaleDateString('en-US', {
                                 month: 'short',
                                 day: 'numeric',
@@ -123,7 +124,7 @@ export default function ShipmentDetail() {
 
                                 <Text className="text-base text-gray-700">Delivery Location</Text>
                             </View>
-                            <Text className="text-lg text-gray-900 mb-1">{shipment.receiverDetails?.address?.addressLine}, {shipment.receiverDetails?.address?.city}, {shipment.receiverDetails?.address?.state}, {shipment.receiverDetails?.address?.zipCode}</Text>
+                            <Text className="text-lg text-gray-900 mb-1">{shipment.receiverDetails?.address?.addressLine}, {locationIdToNameMap[shipment.receiverDetails?.address?.city as keyof typeof locationIdToNameMap]}, {shipment.receiverDetails?.address?.state}, {shipment.receiverDetails?.address?.zipCode}</Text>
                             <Text className="text-gray-400 text-base">{shipment.deliveryDetails?.scheduledDate ? new Date(shipment.deliveryDetails.scheduledDate).toLocaleDateString('en-US', {
                                 month: 'short',
                                 day: 'numeric',

@@ -1606,14 +1606,14 @@ const FlightDashboard: React.FC = () => {
         );
       } else if (activeTab === 'ongoing') {
         const scheduledDate = new Date(flight.scheduleDetails.date);
-      
+       
         const nowUTC = new Date();
         const istOffset = 5.5 * 60 * 60 * 1000;
         const currentISTDate = new Date(nowUTC.getTime() + istOffset);
       
         const scheduledDateStr = scheduledDate.toISOString().split('T')[0];
         const currentDateStr = currentISTDate.toISOString().split('T')[0];
-      
+       
         return (
           flight.isPreFlightChecklistCompleted &&
           !flight.isPostFlightChecklistCompleted &&

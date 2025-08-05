@@ -8,18 +8,13 @@ import { Router, useRouter } from 'expo-router';
 import { Flight, flightService } from '@/utils/api/services/FlightService';
 import Notification, { NotificationType } from '@/components/Notification';
 import Loader from '@/components/Loader';
-import InFlightDroneCard from '@/components/InFlightDroneCard';
 import Flights from "@/assets/images/flights.svg";
 import Parcel from "@/assets/images/parcels.svg";
 import ActiveFlights from "@/assets/images/active-flights.svg";
 import ActiveParcels from "@/assets/images/active-parcels.svg";
 import HamburgerMenu from '@/components/HamburgerMenu';
-import DownwardArrow from '@/assets/images/downward-arrow.svg';
-import UpwardArrow from '@/assets/images/upward-arrow.svg';
-import { locationIdToNameMap } from '@/utils/api/config';
 import { Shipment } from '@/types/shipment';
 import { useShipment } from '@/utils/ShipmentContext';
-import { tags } from 'react-native-svg/lib/typescript/xmlTags';
 
 
 // Flight status types
@@ -151,7 +146,7 @@ const ShipmentCard = ({ shipment, router, tab }: { shipment: Shipment, router: R
       accessibilityLabel={`View details for shipment ${shipment.invoiceNumber}`}
       onPress={() => {
         setShipment(shipment);
-        router.push({ pathname: '/(app)/shipment-detail', params:{tab: tab} });
+        router.push({ pathname: '/(app)/shipment-detail', params: { tab: tab } });
       }}
     >
       <View>
@@ -164,7 +159,7 @@ const ShipmentCard = ({ shipment, router, tab }: { shipment: Shipment, router: R
             day: 'numeric',
             year: 'numeric'
           })}</Text>
-          <Text className="text-gray-400">{shipment.d_Status[0].remarks}</Text>
+          <Text className="text-gray-400">{shipment.s_Status.name}</Text>
         </View>
       </View>
       <Text className="text-4xl text-gray-300">›</Text>
@@ -265,14 +260,14 @@ const Parcels: React.FC = () => {
   // Filter flights based on active tab and search query
   const filteredFlights = useMemo(() => {
     const userLocation = user?.location?.toLowerCase();
-    
+
     let tabFiltered = shipments.filter(shipment => {
       const isDone = shipment.deliveryDetails?.isDone;
       const receiverCity = shipment.receiverDetails?.address?.city?.toLowerCase();
       const senderCity = shipment.senderDetails?.address?.city?.toLowerCase();
-  
+
       if (activeTab === 'inbound') {
-        return receiverCity === userLocation && !isDone;
+        return receiverCity === userLocation && !isDone &&  shipment.s_Status.name==="OUT FOR DELIVERY";
       }
       else if (activeTab === 'outbound') {
         return senderCity === userLocation && !isDone;
@@ -280,19 +275,19 @@ const Parcels: React.FC = () => {
       else { // history
         // Only show completed shipments that involved the user
         return isDone && (
-          receiverCity === userLocation || 
+          receiverCity === userLocation ||
           senderCity === userLocation
         );
       }
     });
-  
+
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       tabFiltered = tabFiltered.filter(shipment =>
         shipment.assignedAWBNumbers?.toLowerCase().includes(query)
       );
     }
-  
+
     return tabFiltered.sort((a, b) =>
       new Date(b.TS_created).getTime() - new Date(a.TS_created).getTime()
     );
@@ -366,8 +361,8 @@ const Parcels: React.FC = () => {
     return (
       <ScrollView
         className="flex-1 px-4"
-        contentContainerStyle={{ 
-          paddingBottom: layout.bottomNavHeight + 20 
+        contentContainerStyle={{
+          paddingBottom: layout.bottomNavHeight + 20
         }}
         showsVerticalScrollIndicator={false}
 

@@ -52,8 +52,8 @@ class MaintainanceService extends BaseService {
         return this.post('report-issue', data);
     }
 
-    async getMaintenanceRecords() {
-        return this.get('/');
+    async getMaintenanceRecords(droneId: string) {
+        return this.get(`?droneId=${droneId}`);
     }
      
     async droneMaintenanceSurvey(data: DroneImagesAI) {

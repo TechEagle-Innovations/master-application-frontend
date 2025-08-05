@@ -6,20 +6,33 @@ import { Camera } from 'lucide-react-native';
 import { useParcelPhoto } from '../../hooks/useParcelPhoto';
 import Header from '@/components/Header';
 import { useShipment } from '@/utils/ShipmentContext';
+import { flightService } from '@/utils/api/services/FlightService';
 
 export default function PostParcelValidation() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { setParcelvalidate } = useShipment();
   const { photo, loading, error, takePhoto } = useParcelPhoto();
+  const { selectedFlight } = useShipment();
 
   const handleAddPhoto = async () => {
     await takePhoto();
   };
 
-  const handleValidate = () => {
-    router.push({pathname:"/(app)/dashboard"});
-    setParcelvalidate(true);
+  const handleValidate = async () => {
+    try {
+     
+      setParcelvalidate(true);
+      const getShipment: any = await flightService.getOneShipment(selectedFlight?._id as string);
+      console.log("getShipment", getShipment, selectedFlight?._id, getShipment?.data[0]?.assignedAWBNumbers);
+      const outforDelivery = await flightService.outForDelivery(getShipment?.data[0]?.assignedAWBNumbers);
+      console.log("outforDelivery", outforDelivery);
+      router.push({ pathname: "/(app)/parcels" });
+    } catch (error) {
+      console.log("ERROR IN OUR FOR DELIVERY", error);
+    }
+
+
   };
 
   return (

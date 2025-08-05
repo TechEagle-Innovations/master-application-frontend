@@ -28,6 +28,7 @@ export interface User {
   userName: string;
   permission: string;
   location: string;
+  curLocation:string;
   designation: string;
 }
 

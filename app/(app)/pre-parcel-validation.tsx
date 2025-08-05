@@ -6,6 +6,7 @@ import { Camera } from 'lucide-react-native';
 import { useParcelPhoto } from '../../hooks/useParcelPhoto';
 import Header from '@/components/Header';
 import { useShipment } from '@/utils/ShipmentContext';
+import { flightService } from '@/utils/api/services/FlightService';
 
 export default function PreParcelValidation() {
   const insets = useSafeAreaInsets();
@@ -17,15 +18,20 @@ export default function PreParcelValidation() {
     await takePhoto();
   };
 
-  const handleValidate = () => {
+  const handleValidate = async() => {
     router.back();
     setParcelvalidate(true);
+    try {
+      // const shipment = await flightService.
+    } catch (error) {
+      
+    }
   };
 
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
-      <Header insets={insets} text={""} />
+      <Header insets={insets} text={"Pre Parcel Validation"} />
       <View className="flex-1 px-6 pt-8">
         <Text className="text-3xl font-bold mb-6">Parcel Validation</Text>
         <Text className="text-lg text-gray-500 mb-12">Click an Image of the Parcel</Text>

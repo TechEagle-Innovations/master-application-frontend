@@ -41,6 +41,9 @@ export default function Login() {
       setLoading(true);
       setError(null);
       const response = await authService.login({ email, password });
+      const currlocation=response.user.curLocation;
+      response.user.curLocation=response.user.location
+      response.user.location=currlocation;
       await authLogin(response);
     } catch (error) {
       console.error('Login failed:', error);

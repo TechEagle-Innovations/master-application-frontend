@@ -100,7 +100,7 @@
 // //       if (battery.battery_id) {
 // //        const startCharging= await batteryService.startCharging(battery.battery_id);
 // //         console.log('Charging started:', startCharging);
-        
+
 // //       } else {
 // //         throw new Error('Battery ID is missing.');
 // //       }
@@ -231,10 +231,10 @@
 // //           },
 // //         ]
 // //       );
-    
 
 
-              
+
+
 // //             }}
 // //           >
 // //             <Text className="text-lg text-black">Discard</Text>
@@ -558,7 +558,7 @@
 //     </View>
 //   );
 // }
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -567,7 +567,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Header from '@/components/Header';
 import { batteryService } from '@/utils/api/services/BatteryService';
@@ -580,7 +580,7 @@ interface Battery {
   battery_id?: string;
   serialNumber?: string;
   model?: string;
-  battery_type?: string; 
+  battery_type?: string;
   num_of_cells?: number;
   voltage?: number;
   mah?: number;
@@ -593,14 +593,15 @@ interface Battery {
 
 export default function BatteryInfo() {
   const params = useLocalSearchParams() || {};
-  const id = params?.id 
-    ? (Array.isArray(params.id) 
-      ? params.id[0] 
+  const id = params?.id
+    ? (Array.isArray(params.id)
+      ? params.id[0]
       : params.id)
     : '';
+  const refresh = params?.refresh === 'true';
   const router = useRouter();
   const insets = useSafeAreaInsets();
-   
+
   const [battery, setBattery] = useState<Battery | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -613,38 +614,44 @@ export default function BatteryInfo() {
     charging: ['Charging', '#f59e42'],
     discarded: ['Discarded', '#888']
   } as const;
-   
-  useEffect(() => {
-    if (!id) {
-      setError('Invalid battery ID.');
-      setLoading(false);
-      return;
-    }
 
-    const loadBatteryData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const list = await batteryService.getBatteries();
-        const found = (list as Battery[]).find((b) => b._id === id);
-        
-        if (!found) {
-          setError('Battery not found.');
-          setBattery(null);
-          return;
-        }
 
-        setBattery(found);
-      } catch (err) {
-        console.error('Error loading battery:', err);
-        setError('Failed to load battery info.');
-      } finally {
+  useFocusEffect(
+    useCallback(() => {
+      if (!id) {
+        setError('Invalid battery ID.');
         setLoading(false);
+        return;
       }
-    };
 
-    loadBatteryData();
-  }, [id, popupVisible]);
+      const loadBatteryData = async () => {
+        try {
+          setLoading(true);
+          setError(null);
+          const list = await batteryService.getBatteries();
+          // console.log("list",list);
+          console.log("id", id);
+          const found = (list as Battery[]).find((b) => b._id === id);
+
+          if (!found) {
+            setError('Battery not found.');
+            setBattery(null);
+            return;
+          }
+
+          setBattery(found);
+        } catch (err) {
+          console.error('Error loading battery:', err);
+          setError('Failed to load battery info.');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadBatteryData();
+    }, [id, popupVisible, refresh])
+  );
+
 
   if (!id) {
     return (
@@ -686,15 +693,15 @@ export default function BatteryInfo() {
   }
 
   // Get status with fallback for unknown states
-  const [statusLabel, statusColor] = battery.charged_status 
-    ? (statusMap[battery.charged_status] || ['Unknown', '#888']) 
+  const [statusLabel, statusColor] = battery.charged_status
+    ? (statusMap[battery.charged_status] || ['Unknown', '#888'])
     : ['Unknown', '#888'];
 
   const isDiscarded = battery.isDiscarded || battery.charged_status === 'discarded';
   const showStart = !isDiscarded && battery.charged_status === 'discharged';
   const showEnd = !isDiscarded && battery.charged_status === 'charging';
 
-  const onPopupConfirm = async(voltage: number, timestamp: string) => {
+  const onPopupConfirm = async (voltage: number, timestamp: string) => {
     setStartVoltage(voltage);
     setStartTime(timestamp);
     try {
@@ -724,7 +731,7 @@ export default function BatteryInfo() {
         {
           text: "Discard",
           style: "destructive",
-          onPress: async() => {
+          onPress: async () => {
             try {
               setLoading(true);
               if (battery.battery_id) {
@@ -883,11 +890,12 @@ export default function BatteryInfo() {
               onPress={() =>
                 router.push({
                   pathname: '/(app)/after-charging',
-                  params: { 
-                    noOfCells: battery?.num_of_cells?.toString(), 
-                    voltage: startVoltage?.toString(), 
-                    startTime: startTime?.toString(), 
-                    batteryId: battery.battery_id 
+                  params: {
+                    noOfCells: battery?.num_of_cells?.toString(),
+                    voltage: startVoltage?.toString(),
+                    startTime: startTime?.toString(),
+                    batteryId: battery.battery_id,
+                    id: battery._id
                   },
                 })
               }

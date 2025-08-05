@@ -35,7 +35,7 @@ interface ScheduleDetail {
   updatedAt: string;
 }
 
-interface ScheduleLog extends ScheduleDetail {}
+interface ScheduleLog extends ScheduleDetail { }
 
 interface MissionDetails {
   takeoffAMSL: number | null;
@@ -105,6 +105,15 @@ interface FlightHistoryApiResponse {
   message: string;
   data: Flight[];
 }
+export interface DeliveryConfirmation {
+  deliveredItemImage: (string | null)[];
+  AWB: string;
+  deliveredTime: Date; // ISO date string
+  pocDetails: {
+    pocName: string;
+    phone_no: string;
+  };
+}
 
 
 class FlightService extends BaseService {
@@ -135,7 +144,7 @@ class FlightService extends BaseService {
     // }
   }
 
-  async getAllLocationBasedFlights(locationId: string){
+  async getAllLocationBasedFlights(locationId: string) {
     return this.get(`flight-location/${locationId}`);
   }
 
@@ -143,30 +152,41 @@ class FlightService extends BaseService {
     return this.post(`connect-drone?droneId=${droneId}`);
   }
 
-  async getAllShipments(){
+  async getAllShipments() {
     return this.get("my-shipments")
   }
 
-  async getOneShipment(flightId:string){
+  async getOneShipment(flightId: string) {
     return this.get(`flight-shipments/${flightId}`);
   }
 
-  async getPreFlight(config:any) {
+  async getPreFlight(config: any) {
     return this.get('preflight', config)
   }
 
-  async getPostFlight(config:any) {
+  async getPostFlight(config: any) {
     return this.get('postflight', config)
   }
 
-  async completePostFlight(data:any, config:any) {
+  async completePostFlight(data: any, config: any) {
     return this.post('postflight', data, config)
   }
-  
-  async completePreFlight(data:any, config:any) {
+
+  async completePreFlight(data: any, config: any) {
     return this.post('preflight', data, config)
   }
-  // Add more drone-related methods here as needed
+
+  async getShipmentForFlight(flightId: string) {
+    return this.get(`/flight-shipments/${flightId}`)
+  }
+
+  async outForDelivery(awb: string) {
+    return this.put(`shipment-ofd/${awb}`, {p:0})
+  }
+
+  async delivered(deliveryData: DeliveryConfirmation) {
+    return this.put(`shipment-delivery`, deliveryData)
+  }
 }
 
-export const flightService = FlightService.getInstance(); 
+export const flightService = FlightService.getInstance();

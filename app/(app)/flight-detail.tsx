@@ -1,5 +1,5 @@
 import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useShipment } from '@/utils/ShipmentContext'
 import Header from '@/components/Header'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -10,15 +10,16 @@ import ConnectDroneModal from '@/components/connnect-drone-modal'
 import BatterySelectionModal from '@/components/BatterySelectionModal'
 import { flightService } from '@/utils/api/services/FlightService'
 import type { Battery } from '@/utils/api/services/BatteryService'
+import { Shipment } from '@/types/shipment'
 
 const FlightDetails = () => {
     const {
         selectedFlight = null,
         parcelvalidate = false,
         connected = false,
-        setConnected = () => {},
+        setConnected = () => { },
         isBatterConnected = false,
-        setIsBatteryConnected = () => {},
+        setIsBatteryConnected = () => { },
     } = useShipment() || {}; // Provide empty fallback object
     const insets = useSafeAreaInsets();
     const router = useRouter();
@@ -28,11 +29,25 @@ const FlightDetails = () => {
     const [showBatteryModal, setShowBatteryModal] = useState(false);
     const [password, setPassword] = useState('');
     const [connectLoading, setConnectLoading] = useState(false);
-    const [connectError, setConnectError] = useState(''); 
+    const [connectError, setConnectError] = useState('');
     const [selectedBatteries, setSelectedBatteries] = useState<Battery[]>([]);
-    const {clearskyToken}=useAuth();
-    // const [pageLoading, setPageLoading] = useState(false);
+    const [shipment, setShipment] = useState<Shipment[] | null>(null);
 
+
+    // const [pageLoading, setPageLoading] = useState(false);
+    useEffect(() => {
+        const getShipment = async () => {
+            try {
+                if (!selectedFlight) return;
+                const res: any = await flightService.getShipmentForFlight(selectedFlight?._id);
+                console.log("res", res);
+                setShipment(res.data);
+            } catch (error) {
+                console.log("ERROR IN GET SHIPMENT", error);
+            }
+        }
+        getShipment();
+    }, []);
     const handleConnect = async () => {
         setConnectLoading(true);
         setConnectError('');
@@ -95,7 +110,6 @@ const FlightDetails = () => {
             setConnectLoading(false);
         }
     };
-
     const handleBatterySelection = async (selectedBatteries: Battery[]) => {
         try {
             console.log('Selected batteries:', selectedBatteries);
@@ -131,44 +145,44 @@ const FlightDetails = () => {
     };
 
     // Enhanced flight data with better fallbacks and real data integration
-    const flightData = {
-        flightId: selectedFlight?.localFlightId || flightId || "FLT-1122",
-        pickupLocation: {
-            address: locationIdToNameMap[selectedFlight?.start_location as keyof typeof locationIdToNameMap] ||
-                selectedFlight?.start_location ||
-                "123 Innovation Park, Silicon Valley",
-            date: selectedFlight?.date_created ? formatDate(selectedFlight.date_created) : "Sept 15, 2023",
-            time: selectedFlight?.date_created ? formatTime(selectedFlight.date_created) : "10:30 AM"
-        },
-        deliveryLocation: {
-            address: locationIdToNameMap[selectedFlight?.order_destination_location as keyof typeof locationIdToNameMap] ||
-                selectedFlight?.order_destination_location ||
-                "456 Tech Avenue, Mountain View",
-            date: selectedFlight?.date_created ? formatDate(selectedFlight.date_created) : "Sept 15, 2023",
-            time: selectedFlight?.date_created ? formatTime(selectedFlight.date_created) : "11:15 AM"
-        },
-        shipmentOverview: {
-            totalPackages: selectedFlight?.payload ? Math.ceil(selectedFlight.payload / 2.5) : 3, // Estimate based on payload
-            totalWeight: selectedFlight?.payload ? `${selectedFlight.payload}KG` : "3.5KG"
-        },
-        parcels: [
-            {
-                id: "PKG001",
-                weight: "2.5 kg",
-                type: "Electronics"
-            },
-            {
-                id: "PKG002",
-                weight: "2.5 kg",
-                type: "Healthcare"
-            },
-            {
-                id: "PKG003",
-                weight: "2.5 kg",
-                type: "Electronics"
-            }
-        ]
-    };
+    // const flightData = {
+    //     flightId: selectedFlight?.localFlightId || flightId || "FLT-1122",
+    //     pickupLocation: {
+    //         address: locationIdToNameMap[selectedFlight?.start_location as keyof typeof locationIdToNameMap] ||
+    //             selectedFlight?.start_location ||
+    //             "123 Innovation Park, Silicon Valley",
+    //         date: selectedFlight?.date_created ? formatDate(selectedFlight.date_created) : "Sept 15, 2023",
+    //         time: selectedFlight?.date_created ? formatTime(selectedFlight.date_created) : "10:30 AM"
+    //     },
+    //     deliveryLocation: {
+    //         address: locationIdToNameMap[selectedFlight?.order_destination_location as keyof typeof locationIdToNameMap] ||
+    //             selectedFlight?.order_destination_location ||
+    //             "456 Tech Avenue, Mountain View",
+    //         date: selectedFlight?.date_created ? formatDate(selectedFlight.date_created) : "Sept 15, 2023",
+    //         time: selectedFlight?.date_created ? formatTime(selectedFlight.date_created) : "11:15 AM"
+    //     },
+    //     shipmentOverview: {
+    //         totalPackages: selectedFlight?.payload ? Math.ceil(selectedFlight.payload / 2.5) : 3, // Estimate based on payload
+    //         totalWeight: selectedFlight?.payload ? `${selectedFlight.payload}KG` : "3.5KG"
+    //     },
+    //     parcels: [
+    //         {
+    //             id: "PKG001",
+    //             weight: "2.5 kg",
+    //             type: "Electronics"
+    //         },
+    //         {
+    //             id: "PKG002",
+    //             weight: "2.5 kg",
+    //             type: "Healthcare"
+    //         },
+    //         {
+    //             id: "PKG003",
+    //             weight: "2.5 kg",
+    //             type: "Electronics"
+    //         }
+    //     ]
+    // };
 
     return (
         <View className="flex-1 bg-gray-50">
@@ -203,12 +217,12 @@ const FlightDetails = () => {
                             <View className="flex-1">
                                 <Text className="text-sm text-gray-500 mb-1">Pickup Location</Text>
                                 <Text className="text-base font-semibold text-gray-800 mb-1">
-                                    {locationIdToNameMap[selectedFlight?.start_location as keyof typeof locationIdToNameMap] || flightData.pickupLocation.address}
+                                    {locationIdToNameMap[selectedFlight?.start_location as keyof typeof locationIdToNameMap]}
                                 </Text>
                                 <Text className="text-sm text-gray-500">
                                     {selectedFlight?.date_created ?
                                         `${formatDate(selectedFlight.date_created)} • ${formatTime(selectedFlight.date_created)}` :
-                                        `${flightData.pickupLocation.date} • ${flightData.pickupLocation.time}`
+                                        `-`
                                     }
                                 </Text>
                             </View>
@@ -222,12 +236,11 @@ const FlightDetails = () => {
                             <View className="flex-1">
                                 <Text className="text-sm text-gray-500 mb-1">Delivery Location</Text>
                                 <Text className="text-base font-semibold text-gray-800 mb-1">
-                                    {locationIdToNameMap[selectedFlight?.order_destination_location as keyof typeof locationIdToNameMap] || flightData.deliveryLocation.address}
+                                    {locationIdToNameMap[selectedFlight?.end_location as keyof typeof locationIdToNameMap]}
                                 </Text>
                                 <Text className="text-sm text-gray-500">
                                     {selectedFlight?.date_created ?
-                                        `${formatDate(selectedFlight.date_created)} • ${formatTime(selectedFlight.date_created)}` :
-                                        `${flightData.deliveryLocation.date} • ${flightData.deliveryLocation.time}`
+                                        `${formatDate(selectedFlight.date_created)} • ${formatTime(selectedFlight.date_created)}` : "-"
                                     }
                                 </Text>
                             </View>
@@ -241,16 +254,16 @@ const FlightDetails = () => {
                     <View className="space-y-2">
                         <View className="flex-row justify-between">
                             <Text className="text-gray-600">Total Packages:</Text>
-                            <Text className="font-semibold text-gray-800">{flightData.shipmentOverview.totalPackages}</Text>
+                            <Text className="font-semibold text-gray-800">{shipment?.length}</Text>
                         </View>
                         <View className="flex-row justify-between">
                             <Text className="text-gray-600">Total Weight:</Text>
-                            <Text className="font-semibold text-gray-800">{flightData.shipmentOverview.totalWeight}</Text>
+                            <Text className="font-semibold text-gray-800">{selectedFlight?.payload} g</Text>
                         </View>
                         {selectedFlight?.payload && (
                             <View className="flex-row justify-between">
                                 <Text className="text-gray-600">Payload:</Text>
-                                <Text className="font-semibold text-gray-800">{selectedFlight.payload} kg</Text>
+                                <Text className="font-semibold text-gray-800">{selectedFlight?.payload} g</Text>
                             </View>
                         )}
                         {selectedFlight?.time_taken && (
@@ -265,13 +278,13 @@ const FlightDetails = () => {
                 {/* Parcel Details Card */}
                 <View className="bg-white rounded-lg p-4 mb-4 shadow-sm">
                     <Text className="text-lg font-semibold text-gray-800 mb-3">Parcel Details</Text>
-                    {flightData.parcels.map((parcel, index) => (
-                        <View key={parcel.id} className={`py-3 ${index !== flightData.parcels.length - 1 ? 'border-b border-gray-100' : ''}`}>
+                    {shipment && shipment.map((parcel, index) => (
+                        <View key={parcel.assignedAWBNumbers} className={`py-3 ${index !== shipment.length - 1 ? 'border-b border-gray-100' : ''}`}>
                             <View className="flex-row justify-between items-start mb-1">
                                 <Text className="font-semibold text-gray-800">Package {index + 1}</Text>
-                                <Text className="text-sm text-gray-500">#{parcel.id}</Text>
+                                <Text className="text-sm text-gray-500">#{parcel.assignedAWBNumbers}</Text>
                             </View>
-                            <Text className="text-sm text-gray-600">{parcel.weight} • {parcel.type}</Text>
+                            <Text className="text-sm text-gray-600">{parcel?.shipmentDetails?.weight} g</Text>
                         </View>
                     ))}
                 </View>
@@ -353,7 +366,7 @@ const FlightDetails = () => {
                             <Text className="text-lg text-white">Track Flight</Text>
                         </TouchableOpacity>
                     )}
-                    {tab === 'ongoing' && selectedFlight?.isCompleted && connected &&(
+                    {tab === 'ongoing' && selectedFlight?.isCompleted && connected && user?.location===selectedFlight?.end_location && (
                         <TouchableOpacity
                             className="w-full rounded-xl py-4 bg-orange-500 items-center"
                             onPress={() => router.push('/(app)/postflight-checklist')}
@@ -361,7 +374,7 @@ const FlightDetails = () => {
                             <Text className="text-lg text-white">Run PostFlight Checklist</Text>
                         </TouchableOpacity>
                     )}
-                    {(tab === 'ongoing' && !connected ) &&
+                    {(tab === 'ongoing' && !connected) &&
                         (
                             <TouchableOpacity
                                 className="bg-primary rounded-xl py-4 mb-3 items-center"

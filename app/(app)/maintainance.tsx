@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MagnifyingGlassIcon } from 'react-native-heroicons/outline';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useShipment, Maintenance } from '../../utils/ShipmentContext';
 import { maintainanceService } from '@/utils/api/services/MaintainanceService';
 import Header from '@/components/Header';
@@ -108,11 +108,12 @@ export default function MaintenanceScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const { maintenanceRecords, setMaintenanceRecords } = useShipment();
+  const params = useLocalSearchParams<{ droneId?: string }>();
 
   const fetchMaintenanceRecords = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await maintainanceService.getMaintenanceRecords() as Maintenance[];
+      const res = await maintainanceService.getMaintenanceRecords(params.droneId) as Maintenance[];
       setMaintenanceRecords(res);
     } catch (error) {
       // Toast.show({

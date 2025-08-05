@@ -5,18 +5,44 @@ import { useRouter } from 'expo-router';
 import { Camera } from 'lucide-react-native';
 import { useParcelPhoto } from '../../hooks/useParcelPhoto';
 import Header from '@/components/Header';
+import { flightService } from '@/utils/api/services/FlightService';
+import { useShipment } from '@/utils/ShipmentContext';
+import { useAuth } from '@/utils/auth/AuthContext';
 
 export default function ParcelValidation() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { photo, loading, error, takePhoto } = useParcelPhoto();
+  const { shipment } = useShipment();
+  const { user } = useAuth();
 
   const handleAddPhoto = async () => {
     await takePhoto();
   };
 
-  const handleValidate = () => {
-    router.push({ pathname: '/(app)/parcels' });
+  const handleValidate = async () => {
+    console.log("PHOTO", photo);
+    try {
+      if (!user || !shipment) {
+        return
+      }
+      const payload = {
+        deliveredItemImage: [photo],
+        AWB: shipment?.assignedAWBNumbers as string,
+        deliveredTime: new Date(), // ISO date string
+        pocDetails: {
+          pocName: user?.userName,
+          phone_no: "1234567890"
+        }
+      }
+      console.log(payload);
+      const res: any = await flightService.delivered(payload);
+      router.push({ pathname: '/(app)/parcels' });
+
+      console.log("DELERING PARCEL", res.data);
+    } catch (error) {
+      console.log("ERROR IN DELERING PARCEL", error);
+    }
   };
 
   return (

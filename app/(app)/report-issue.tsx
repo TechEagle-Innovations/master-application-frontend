@@ -75,7 +75,7 @@ export default function ReportIssue() {
         priority: ''
       });
       setTimeout(() => {
-        router.replace({ pathname: '/(app)/dashboard', params: { message: 'Issue reported successfully!', type:"success" } });
+        router.replace({ pathname: '/(app)/drone-detail', params: { id: params.id, message: 'Issue reported successfully!', type:"success" } });
       }, 200);
     } catch (err: any) {
       console.error('API error:', err);

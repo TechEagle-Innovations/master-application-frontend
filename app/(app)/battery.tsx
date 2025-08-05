@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Header from '@/components/Header';
 import { Battery, batteryService } from '@/utils/api/services/BatteryService';
 import BatteryCard from '@/components/BatteryCard';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useShipment } from '@/utils/ShipmentContext';
 
 const TABS = [
@@ -32,7 +32,8 @@ export type BatteryAPI = {
     curr_max_vdiff?: number;
     current_voltage?: number;
     cycle_count?: number;
-    flight_history?: any[]; // You might want to replace 'any' with a more specific type
+    flight_history?: any[];
+    current_flight_id?:string; // You might want to replace 'any' with a more specific type
     history?: {
         cell_voltage?: any; // Replace with proper type if you know the structure
         charge_end_time?: string;
@@ -78,9 +79,11 @@ export default function BatteryScreen() {
         }
     };
 
-    useEffect(() => {
-        fetchBatteries();
-    }, [activeTab]);
+    useFocusEffect(
+        useCallback(() => {
+            fetchBatteries();
+        }, [activeTab])
+    );
 
     // Filter logic
     const filteredBatteries = batteries?.filter(b => {
@@ -111,30 +114,30 @@ export default function BatteryScreen() {
             </View>
 
             {/* Filters */}
-           {   activeTab==="available" && <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{
-                        paddingHorizontal: 12,
-                        paddingBottom: 12, // Added bottom padding
-                        alignItems: 'center'
-                    }}
-                    style={{ flexGrow: 0 }}
-                    className="mt-2 mb-2 px-2"
-                >
-                    {FILTERS.map((filter, idx) => (
-                        <TouchableOpacity
-                            key={filter.value}
-                            className={`px-5 h-10 flex-row items-center justify-center rounded-full mr-3 ${activeFilter === filter.value ? 'bg-orange-500' : 'bg-gray-100'} ${idx === 0 ? 'shadow-md' : ''}`}
-                            style={{ borderWidth: activeFilter === filter.value ? 0 : 1, borderColor: activeFilter === filter.value ? 'transparent' : '#e5e7eb' }}
-                            onPress={() => setActiveFilter(filter.value as typeof activeFilter)}
-                        >
-                            <Text className={`${activeFilter === filter.value ? 'text-white' : 'text-gray-700'} font-semibold text-base`}>
-                                {filter.label}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </ScrollView>}
+            {activeTab === "available" && <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{
+                    paddingHorizontal: 12,
+                    paddingBottom: 12, // Added bottom padding
+                    alignItems: 'center'
+                }}
+                style={{ flexGrow: 0 }}
+                className="mt-2 mb-2 px-2"
+            >
+                {FILTERS.map((filter, idx) => (
+                    <TouchableOpacity
+                        key={filter.value}
+                        className={`px-5 h-10 flex-row items-center justify-center rounded-full mr-3 ${activeFilter === filter.value ? 'bg-orange-500' : 'bg-gray-100'} ${idx === 0 ? 'shadow-md' : ''}`}
+                        style={{ borderWidth: activeFilter === filter.value ? 0 : 1, borderColor: activeFilter === filter.value ? 'transparent' : '#e5e7eb' }}
+                        onPress={() => setActiveFilter(filter.value as typeof activeFilter)}
+                    >
+                        <Text className={`${activeFilter === filter.value ? 'text-white' : 'text-gray-700'} font-semibold text-base`}>
+                            {filter.label}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </ScrollView>}
 
             {/* Battery List */}
             <ScrollView className="flex-1 px-2"

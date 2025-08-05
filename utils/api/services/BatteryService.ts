@@ -30,7 +30,7 @@ export interface ConnectBatteryData {
     flightId: string ;
     droneId: string;
 }
-export interface addBattery
+export interface AddBattery
 {
  "model": string,
   "num_of_cells": number,
@@ -54,7 +54,12 @@ interface stopChargingData {
   "monitor_by": string | undefined
 
 }
-
+interface DisconnectPayload {
+    all_Battery: string[];
+    batteryVoltages: Record<string, number>; // or { [batteryId: string]: number }
+    end_location: string;
+  }
+  
 
 class BatteryService extends BaseService {
     private static instance: BatteryService;
@@ -79,7 +84,7 @@ class BatteryService extends BaseService {
     }
     // Add more drone-related methods here as needed
 
-    async addBattery(battery: addBattery) {
+    async addBattery(battery: AddBattery) {
         return this.post('/', battery);
     }
 
@@ -97,6 +102,10 @@ class BatteryService extends BaseService {
         console.log('Discarding battery:', batteryId);
         return this.put(`discard/${batteryId}`, {});
     }
+
+    async disconnectBattery(batteryData: DisconnectPayload) {
+        return this.put(`disconnect`, batteryData);
+    } 
 }
 
 export const batteryService = BatteryService.getInstance(); 

@@ -145,6 +145,13 @@ export default function AppLayout() {
           headerShown: false,
         }}
       />
+      
+      <Stack.Screen
+        name="post-parcel-validation"
+        options={{
+          headerShown: false,
+        }}
+      />
       <Stack.Screen
         name="pre-parcel-validation"
         options={{
