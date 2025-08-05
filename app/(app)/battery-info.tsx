@@ -865,10 +865,10 @@ export default function BatteryInfo() {
         className="absolute left-0 right-0 bottom-0 bg-white px-5 pb-5"
         style={{ paddingBottom: insets.bottom + 20 }}
       >
-        <View className="flex flex-col space-y-3">
+        <View className="flex flex-col">
           {!isDiscarded && (
             <TouchableOpacity
-              className="w-full rounded-xl py-4 bg-gray-100 items-center"
+              className="w-full rounded-xl py-4 bg-gray-100 items-center mb-3"
               onPress={handleDiscard}
             >
               <Text className="text-lg text-black">Discard</Text>
