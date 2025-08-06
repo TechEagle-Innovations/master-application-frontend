@@ -7,9 +7,9 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "image": "./assets/images/loading-image.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#FF6A00"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -23,7 +23,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.dnyaneshwarsuryawanshi.masterapplicationfrontend",
@@ -38,13 +38,16 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/images/logo.png"
     },
     "scheme": "com.dnyaneshwarsuryawanshi.masterapplicationfrontend",
     "extra": {
       "eas": {
         "projectId": "a5570ca0-95eb-4d9a-aa53-4acf0e899032"
       }
-    }
+    },
+    "plugins": [
+      "expo-router"
+    ]
   }
 }

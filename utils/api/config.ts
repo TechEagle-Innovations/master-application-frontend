@@ -1,30 +1,63 @@
-import { Platform } from 'react-native';
+// import { Platform } from 'react-native';
 
 // Get the environment from process.env or use development as default
-const ENV = process.env.NODE_ENV || 'development';
-const cms= "https://cdn.techeagle.in"
-export const CLEARSKY_URL="https://training.clearsky.techeagle.org"
+// const ENV = process.env.NODE_ENV || 'development';
+// const cms= "https://cdn.techeagle.in"
+// export const CLEARSKY_URL="https://training.clearsky.techeagle.org"
+// export const UPLOAD_URL = `${cms}/images/new-add`;
+// // Handle localhost for different platforms
+// const getLocalhost = () => {
+//   if (Platform.OS === 'android') {
+//     return 'http://192.168.1.78:6000'; // Android emulator localhost
+//   }
+//   if (Platform.OS === 'ios') {
+//     return 'http://localhost:6000'; // iOS simulator localhost
+//   }
+//   return 'http://localhost:6000'; // Web/default
+// };
+
+// const API_URLS = {
+//   development: getLocalhost(),
+//   production: 'https://your-production-api.com',
+// } as const;
+
+// export const API_CONFIG = {
+//   BASE_URL: API_URLS[ENV as keyof typeof API_URLS],
+//   TIMEOUT: 10000,
+//   ENDPOINTS: {
+//     AUTH: {
+//       LOGIN: '/user/login',
+//       LOGOUT: '/user/logout',
+//       REFRESH_TOKEN: '/user/refresh-token',
+//       FORGOT_PASSWORD: '/user/forgot-password',
+//       VERIFY_OTP: '/user/verify-otp',
+//       RESET_PASSWORD: '/user/reset-password',
+//     },
+//     USER: {
+//       PROFILE: '/user/profile',
+//       UPDATE_PROFILE: '/user/update-profile',
+//       CHANGE_PASSWORD: '/user/change-password',
+//     },
+//   },
+//   HEADERS: {
+//     'Content-Type': 'application/json',
+//     Accept: 'application/json',
+//   },
+// } as const;
+
+import { Platform } from 'react-native';
+
+const cms = "https://cdn.techeagle.in";
+export const CLEARSKY_URL = "https://training.clearsky.techeagle.org";
 export const UPLOAD_URL = `${cms}/images/new-add`;
-export const USER_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6IlRlc3RpbmciLCJ1c2VyRW1haWwiOiJ0ZXN0aW5nQHRlY2hlYWdsZS5pbiIsInByb2plY3ROYW1lIjoiQURNSU4iLCJpYXQiOjE3NTE4OTE0MjR9.1zw3KaOFPsZUbW8quvmnB4dQY7ShzzPlxUXaFAnAH6E';
 
-// Handle localhost for different platforms
-const getLocalhost = () => {
-  if (Platform.OS === 'android') {
-    return 'http://192.168.1.78:6000'; // Android emulator localhost
-  }
-  if (Platform.OS === 'ios') {
-    return 'http://localhost:6000'; // iOS simulator localhost
-  }
-  return 'http://localhost:6000'; // Web/default
-};
-
-const API_URLS = {
-  development: getLocalhost(),
-  production: 'https://your-production-api.com',
-} as const;
+// Read API_URL from env or fallback to localhost dev
+const API_BASE = process.env.API_URL || (Platform.OS === 'android'
+  ? 'http://192.168.1.78:6000'
+  : 'http://localhost:6000');
 
 export const API_CONFIG = {
-  BASE_URL: API_URLS[ENV as keyof typeof API_URLS],
+  BASE_URL: API_BASE,
   TIMEOUT: 10000,
   ENDPOINTS: {
     AUTH: {
