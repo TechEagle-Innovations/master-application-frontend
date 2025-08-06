@@ -1,0 +1,54 @@
+
+import 'dotenv/config';
+
+export default ({ config }) => ({
+  ...config,
+  name: "Master Application Frontend",
+  slug: "master-application-frontend",
+  version: "1.0.0",
+  orientation: "portrait",
+  icon: "./assets/images/logo.png",
+  userInterfaceStyle: "light",
+  splash: {
+    image: "./assets/images/loading-image.png",
+    resizeMode: "cover",
+    backgroundColor: "#FF6A00"
+  },
+  assetBundlePatterns: ["**/*"],
+  ios: {
+    supportsTablet: true,
+    bundleIdentifier: "com.dnyaneshwarsuryawanshi.masterapplicationfrontend",
+    config: {
+      googleMapsApiKey: ""
+    }
+  },
+  android: {
+    adaptiveIcon: {
+      foregroundImage: "./assets/images/logo.png",
+      backgroundColor: "#ffffff"
+    },
+    package: "com.dnyaneshwarsuryawanshi.masterapplicationfrontend",
+    config: {
+      googleMaps: {
+        apiKey: ""
+      }
+    },
+    permissions: [
+      "ACCESS_FINE_LOCATION",
+      "ACCESS_COARSE_LOCATION"
+    ]
+  },
+  web: {
+    favicon: "./assets/images/logo.png"
+  },
+  scheme: "com.dnyaneshwarsuryawanshi.masterapplicationfrontend",
+  extra: {
+    eas: {
+      projectId: "a5570ca0-95eb-4d9a-aa53-4acf0e899032"
+    },
+    API_URL: process.env.API_URL ?? "http://localhost:6000"
+  },
+  plugins: [
+    "expo-router"
+  ]
+});
