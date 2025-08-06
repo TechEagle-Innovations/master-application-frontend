@@ -1,4 +1,3 @@
-
 import 'dotenv/config';
 
 export default ({ config }) => ({
@@ -11,7 +10,7 @@ export default ({ config }) => ({
   userInterfaceStyle: "light",
   splash: {
     image: "./assets/images/loading-image.png",
-    resizeMode: "cover",
+    resizeMode: "cover", // “cover” should make it full screen
     backgroundColor: "#FF6A00"
   },
   assetBundlePatterns: ["**/*"],
@@ -23,19 +22,21 @@ export default ({ config }) => ({
     }
   },
   android: {
+    package: "com.dnyaneshwarsuryawanshi.masterapplicationfrontend",
     adaptiveIcon: {
       foregroundImage: "./assets/images/logo.png",
       backgroundColor: "#ffffff"
     },
-    package: "com.dnyaneshwarsuryawanshi.masterapplicationfrontend",
     config: {
       googleMaps: {
         apiKey: ""
-      }
+      },
+      cleartextTraffic: true
     },
     permissions: [
       "ACCESS_FINE_LOCATION",
-      "ACCESS_COARSE_LOCATION"
+      "ACCESS_COARSE_LOCATION",
+      "INTERNET" // make sure this is here for network requests
     ]
   },
   web: {
