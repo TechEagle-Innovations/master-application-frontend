@@ -54,12 +54,12 @@ export const CLEARSKY_URL = "https://training.clearsky.techeagle.org";
 export const UPLOAD_URL = `${cms}/images/new-add`;
 
 // Read API_URL from env or fallback to localhost dev
-const API_BASE1 = Constants.expoConfig?.extra?.API_URL || 'http://localhost:6000';
-console.log("URL", API_BASE1);
-const API_BASE = process.env.API_URL || (Platform.OS === 'android'
-  ? 'http://192.168.1.168:6000'
-  : 'http://localhost:6000');
-  console.log("URL", API_BASE);
+const API_BASE = Constants.expoConfig?.extra?.API_URL || 'http://localhost:6000';
+console.log("URL", API_BASE);
+// const API_BASE = process.env.API_URL || (Platform.OS === 'android'
+//   ? 'http://192.168.1.168:6000'
+//   : 'http://localhost:6000');
+//   console.log("URL", API_BASE);
 export const API_CONFIG = {
   BASE_URL: API_BASE,
   TIMEOUT: 10000,

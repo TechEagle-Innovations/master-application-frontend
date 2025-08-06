@@ -3,7 +3,7 @@ import 'dotenv/config';
 
 export default ({ config }) => ({
   ...config,
-  name: "Master Application Frontend",
+  name: "Master App",
   slug: "master-application-frontend",
   version: "1.0.0",
   orientation: "portrait",
@@ -49,6 +49,20 @@ export default ({ config }) => ({
     API_URL: process.env.API_URL ?? "http://localhost:6000"
   },
   plugins: [
+    [
+      "expo-splash-screen",
+      {
+        image: "./assets/images/loading-image.png",
+        resizeMode: "cover",
+        backgroundColor: "#FF6A00",
+        android: {
+          imageWidth: 1080
+        },
+        ios: {
+          imageWidth: 1080
+        }
+      }
+    ],
     "expo-router"
   ]
 });
