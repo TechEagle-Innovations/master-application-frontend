@@ -24,7 +24,7 @@ function RootLayoutNav() {
     if (!navigationState?.key || isLoading) return;
 
     const inAuthGroup = segments[0] === '(auth)';
-    
+
     if (isAuthenticated && inAuthGroup) {
       router.replace('/(app)/dashboard');
     } else if (!isAuthenticated && !inAuthGroup) {
@@ -62,12 +62,12 @@ export default function RootLayout() {
   }
 
   return (
-    <AuthProvider>
-      <NotificationProvider>
-      <ShipmentProvider>
-        <RootLayoutNav />
-      </ShipmentProvider>
-      </NotificationProvider>
-    </AuthProvider>
+    <ShipmentProvider>
+      <AuthProvider>
+        <NotificationProvider>
+          <RootLayoutNav />
+        </NotificationProvider>
+      </AuthProvider>
+    </ShipmentProvider>
   );
 }

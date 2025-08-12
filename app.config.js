@@ -29,7 +29,7 @@ export default ({ config }) => ({
     },
     config: {
       googleMaps: {
-        apiKey: ""
+        apiKey: "AIzaSyAx6YgwOvCk_UZOTMnG7GpUCA0gaHYyNo4"
       },
       cleartextTraffic: true
     },
