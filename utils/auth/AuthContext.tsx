@@ -9,6 +9,7 @@ import React, {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthAction, AuthResponse, AuthState } from '@/utils/auth/types';
 import { tokenService } from './tokenService';
+import { useShipment } from '../ShipmentContext';
 
 const initialState: AuthState = {
   isAuthenticated: false,
@@ -55,6 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, initialState);
   const [isInitialized, setIsInitialized] = useState(false);
   const [clearskyToken, setClearskTokenState] = useState<string | null>(null);
+  const { resetShipmentState } = useShipment();
 
   const login = useCallback(async (response: AuthResponse) => {
     try {
@@ -69,6 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(async () => {
     try {
       const success = await tokenService.logout();
+      resetShipmentState();
       if (!success) {
         console.warn('Logout failed or partially failed. Tokens may not be cleared.');
       }

@@ -245,13 +245,13 @@ export interface Maintenance {
     issueSeverity: string;
     userComments: string;
     isResolved: boolean;
-    scheduledDate:string;
+    scheduledDate: string;
     createdAt: string;
     updatedAt: string;
     actionsTaken: any[];
-    nextScheduledDate:string;
+    nextScheduledDate: string;
     maintenanceChecklist: any[];
-    maintenanceInterval:string;
+    maintenanceInterval: string;
     __v: number;
 }
 
@@ -279,6 +279,7 @@ interface ShipmentContextProps {
     setStartTime: (time: string | null) => void;
     selectedBattery: BatteryAPI | null;
     setSelectedBattery: (battery: BatteryAPI) => void;
+    resetShipmentState: () => void;
 }
 
 const ShipmentContext = createContext<ShipmentContextProps | undefined>(undefined);
@@ -295,6 +296,19 @@ export const ShipmentProvider = ({ children }: { children: ReactNode }) => {
     const [startVoltage, setStartVoltage] = useState<number | null>(null);
     const [startTime, setStartTime] = useState<string | null>(null);
     const [selectedBattery, setSelectedBattery] = useState<BatteryAPI | null>(null);
+    const resetShipmentState = () => {
+        setShipment(null);
+        setShipments([]);
+        setMaintenance(null);
+        setMaintenanceRecords([]);
+        setSelectedFlight(null);
+        setParcelvalidate(false);
+        setConnected(false);
+        setIsBatteryConnected(false);
+        setStartVoltage(null);
+        setStartTime(null);
+        setSelectedBattery(null);
+    };
 
     return (
         <ShipmentContext.Provider value={{
@@ -319,7 +333,8 @@ export const ShipmentProvider = ({ children }: { children: ReactNode }) => {
             startTime,
             setStartTime,
             selectedBattery,
-            setSelectedBattery
+            setSelectedBattery,
+            resetShipmentState
         }}>
             {children}
         </ShipmentContext.Provider>

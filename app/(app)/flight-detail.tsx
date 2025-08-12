@@ -374,7 +374,7 @@ const FlightDetails = () => {
                             <Text className="text-lg text-white">Run PostFlight Checklist</Text>
                         </TouchableOpacity>
                     )}
-                    {(tab === 'ongoing' && !connected) &&
+                    {(tab === 'ongoing' && !connected && clears) &&
                         (
                             <TouchableOpacity
                                 className="bg-primary rounded-xl py-4 mb-3 items-center"

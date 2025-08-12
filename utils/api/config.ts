@@ -98,7 +98,7 @@ export const AUTH_STORAGE_KEYS = {
   ACCESS_TOKEN: 'auth_access_token',
   REFRESH_TOKEN: 'auth_refresh_token',
   USER: 'auth_user',
-} as const; 
+} as const;
 export const locationIdToNameMap = {
   // From TE-clearsky-training.hublocationinfos.json
   "63930f82865ec3abed90bc1b": "Mendipathar PHC",
@@ -135,6 +135,8 @@ export const locationIdToNameMap = {
   "65eac3286a599653eac38d62": "Gurugram",
   "65f15b99a46eccde40b1d966": "Guwahati",
   "683da0149177ac86eb21811f": "Myntra Bilaspur FC",
+  "6899e6f7ab5275155bb8c3a7": "Pataudi Node 1",
+  "6899d1ce0b1d9108a21b4577": "Pataudi Testing Field"
   // From TE-clearsky-training.locationinfos.json
   // (Note: This file contains the same locations as above, so no additional entries needed)
 };
