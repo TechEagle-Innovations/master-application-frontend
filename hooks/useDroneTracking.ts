@@ -24,7 +24,7 @@ export interface RoutePoint {
 }
 
 export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected'| "error";
-const SOCKET_URL = 'https://training.ws5002.techeagle.org';
+const SOCKET_URL = 'https://ws5002.techeagle.in';
 export function useDroneTracking(flightId: string) {
   const [drone, setDrone] = useState<DroneTelemetry | null>(null);
   const [route, setRoute] = useState<RoutePoint[]>([]);

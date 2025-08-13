@@ -50,7 +50,7 @@ import Constants from 'expo-constants';
 
 
 const cms = "https://cdn.techeagle.in";
-export const CLEARSKY_URL = "https://training.clearsky.techeagle.org";
+export const CLEARSKY_URL = "https://clearsky.techeagle.in";
 export const UPLOAD_URL = `${cms}/images/new-add`;
 
 // Read API_URL from env or fallback to localhost dev
@@ -136,7 +136,9 @@ export const locationIdToNameMap = {
   "65f15b99a46eccde40b1d966": "Guwahati",
   "683da0149177ac86eb21811f": "Myntra Bilaspur FC",
   "6899e6f7ab5275155bb8c3a7": "Pataudi Node 1",
-  "6899d1ce0b1d9108a21b4577": "Pataudi Testing Field"
+  "6899d1ce0b1d9108a21b4577": "Pataudi Testing Field",
+  "689b1c44d018d4db4e4cf2bb":"Office Testing",
+  "689b1bb0d018d4db4e4cf26b":"Office Test Node 1"
   // From TE-clearsky-training.locationinfos.json
   // (Note: This file contains the same locations as above, so no additional entries needed)
 };
